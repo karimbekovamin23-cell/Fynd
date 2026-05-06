@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.ad-card{
+    background:#18181b;
+    border-radius:16px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:0.2s;
+    border:1px solid #222;
+    position:relative;
+}
+
+.ad-card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 10px 30px rgba(0,0,0,0.6);
+}
+
+.ad-image{
+    height:180px;
+    background:#0e0e10;
+}
+
+.ad-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.no-img{
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#555;
+    font-size:30px;
+}
+
+.ad-body{
+    padding:15px;
+}
+
+.ad-title{
+    font-size:16px;
+    font-weight:500;
+    margin-bottom:5px;
+}
+
+.price{
+    color:#4ade80;
+    font-weight:600;
+}
+
+.city{
+    font-size:13px;
+    opacity:0.6;
+}
+
+/* ❤️ кнопка */
+.fav-btn{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:rgba(0,0,0,0.6);
+    border:none;
+    border-radius:50%;
+    width:36px;
+    height:36px;
+    color:red;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.fav-btn:hover{
+    background:#000;
+}
+</style>
+
+
+<div class="container mt-4">
+
+<h2>❤️ Избранное</h2>
+
+<div class="row g-4">
+
+{% for ad in ads %}
+
+<div class="col-md-4">
+
+<div class="ad-card">
+
+<!-- 🔥 КНОПКА УБРАТЬ -->
+<form method="post"
+      action="{% url 'toggle_favorite' ad.id %}"
+      onclick="event.stopPropagation();">
+
+    {% csrf_token %}
+    <button class="fav-btn">❤️</button>
+
+</form>
+
+<!-- 🔥 КЛИК ПО КАРТОЧКЕ -->
+<div onclick="window.location.href='{% url 'ad_detail' ad.id %}'">
+
+    <div class="ad-image">
+
+        {% if ad.image %}
+        <img src="{{ ad.image.url }}" class="ad-img">
+        {% else %}
+        <div class="no-img">📦</div>
+        {% endif %}
+
+    </div>
+
+    <div class="ad-body">
+
+        <div class="ad-title">{{ ad.title }}</div>
+
+        <div class="price">{{ ad.price }} ₽</div>
+
+        <div class="city">📍 {{ ad.city }}</div>
+
+    </div>
+
+</div>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<p>У вас пока нет избранных объявлений</p>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+{% endblock %}

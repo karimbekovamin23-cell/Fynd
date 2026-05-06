@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Регистрация — FYND</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+background:#0e0e10;
+color:white;
+font-family:'Inter',sans-serif;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.card{
+background:#18181b;
+padding:32px;
+border-radius:20px;
+width:100%;
+max-width:380px;
+}
+
+h2{text-align:center;margin-bottom:20px;}
+
+input{
+width:100%;
+padding:12px;
+border-radius:12px;
+border:1px solid #2a2a2e;
+margin-bottom:12px;
+background:#0e0e10;
+color:#4ade80;
+}
+
+input:focus{
+outline:none;
+border:1px solid #4ade80;
+}
+
+button{
+width:100%;
+padding:12px;
+border-radius:12px;
+border:none;
+background:#2563eb;
+color:white;
+}
+
+.link{
+text-align:center;
+margin-top:15px;
+opacity:.7;
+}
+
+.link a{color:#4ade80;}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Регистрация</h2>
+
+<form method="post">
+{% csrf_token %}
+{{ form.as_p }}
+
+<button type="submit">Создать аккаунт</button>
+</form>
+
+<div class="link">
+Уже есть аккаунт? <a href="/accounts/login/">Войти</a>
+</div>
+
+</div>
+
+</body>
+</html>

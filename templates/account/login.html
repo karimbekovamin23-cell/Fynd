@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>FYND — Вход</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+    background:#0e0e10;
+    font-family:'Inter',sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    color:white;
+}
+
+.card{
+    background:#18181b;
+    padding:32px;
+    border-radius:20px;
+    width:100%;
+    max-width:400px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.7);
+}
+
+.title{
+    text-align:center;
+    margin-bottom:20px;
+    font-size:20px;
+    font-weight:600;
+}
+
+.switch{
+    display:flex;
+    margin-bottom:20px;
+    background:#0e0e10;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.switch button{
+    flex:1;
+    padding:10px;
+    border:none;
+    background:none;
+    color:#9ca3af;
+    cursor:pointer;
+}
+
+.switch .active{
+    background:#2563eb;
+    color:white;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin-bottom:12px;
+    border-radius:12px;
+    border:1px solid #2a2a2e;
+    background:#0e0e10;
+    color:#4ade80;
+}
+
+input:focus{
+    outline:none;
+    border:1px solid #4ade80;
+}
+
+button.submit{
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    border:none;
+    background:#2563eb;
+    color:white;
+    font-weight:500;
+    cursor:pointer;
+}
+
+button.submit:hover{
+    background:#1d4ed8;
+}
+
+.form{
+    display:none;
+}
+
+.form.active{
+    display:block;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="title">FYND</div>
+
+<div class="switch">
+    <button id="loginBtn" class="active">Вход</button>
+    <button id="registerBtn">Регистрация</button>
+</div>
+
+<!-- ВХОД -->
+<form method="post" class="form active" id="loginForm">
+    {% csrf_token %}
+    <input name="login" placeholder="email">
+    <input type="password" name="password" placeholder="Пароль">
+    <button class="submit">Войти</button>
+</form>
+
+<!-- РЕГИСТРАЦИЯ -->
+<form method="post" action="/accounts/signup/" class="form" id="registerForm">
+    {% csrf_token %}
+    <input name="email" placeholder="Email">
+    <input type="password" name="password1" placeholder="Пароль">
+    <input type="password" name="password2" placeholder="Повторите пароль">
+    <button class="submit">Зарегистрироваться</button>
+</form>
+
+</div>
+
+<script>
+
+const loginBtn = document.getElementById("loginBtn");
+const registerBtn = document.getElementById("registerBtn");
+
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+
+loginBtn.onclick = () => {
+    loginBtn.classList.add("active");
+    registerBtn.classList.remove("active");
+
+    loginForm.classList.add("active");
+    registerForm.classList.remove("active");
+};
+
+registerBtn.onclick = () => {
+    registerBtn.classList.add("active");
+    loginBtn.classList.remove("active");
+
+    registerForm.classList.add("active");
+    loginForm.classList.remove("active");
+};
+
+</script>
+
+</body>
+</html>

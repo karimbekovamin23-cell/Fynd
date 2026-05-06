@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+/* 🔥 КОНТЕЙНЕР */
+.chat-container{
+    max-width:900px;
+    margin:20px auto;
+    height:calc(100vh - 120px);
+
+    display:flex;
+    flex-direction:column;
+}
+
+/* 🔥 ЗАГОЛОВОК */
+.chat-title{
+    margin-bottom:15px;
+}
+
+/* 🔥 ОКНО ЧАТА */
+#chat-log{
+    flex:1;
+    overflow-y:auto;
+    background:#18181b;
+    border-radius:16px;
+    padding:20px;
+
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+/* 🔥 СООБЩЕНИЕ */
+.msg{
+    max-width:60%;
+    padding:10px 14px;
+    border-radius:12px;
+    font-size:14px;
+}
+
+/* МОИ */
+.msg.me{
+    align-self:flex-end;
+    background:#2563eb;
+    color:white;
+}
+
+/* ЧУЖИЕ */
+.msg.other{
+    align-self:flex-start;
+    background:#27272a;
+    color:#e5e7eb;
+}
+
+/* ИМЯ */
+.msg-name{
+    font-size:11px;
+    opacity:0.6;
+    margin-bottom:3px;
+}
+
+/* 🔥 ВВОД */
+.chat-input{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+}
+
+#chat-message-input{
+    flex:1;
+    background:#18181b;
+    border:none;
+    color:white;
+    padding:12px;
+    border-radius:12px;
+}
+
+#chat-message-submit{
+    background:#2563eb;
+    border:none;
+    color:white;
+    padding:12px 20px;
+    border-radius:12px;
+    cursor:pointer;
+}
+
+#chat-message-submit:hover{
+    background:#1d4ed8;
+}
+
+/* 🔥 МОБИЛКА */
+@media (max-width:768px){
+
+    .chat-container{
+        height:calc(100vh - 80px);
+        margin:0;
+    }
+
+    .chat-title{
+        font-size:16px;
+        padding:10px;
+    }
+
+    #chat-log{
+        border-radius:0;
+        padding:12px;
+    }
+
+    .msg{
+        max-width:85%;
+        font-size:14px;
+        word-break:break-word;
+    }
+
+    .chat-input{
+        position:sticky;
+        bottom:0;
+        background:#0e0e10;
+        padding:10px;
+    }
+
+    #chat-message-input{
+        font-size:16px;
+    }
+
+}
+
+</style>
+
+<div class="chat-container">
+
+<h4 class="chat-title">Чат по объявлению: {{ chat.ad.title }}</h4>
+
+<div id="chat-log">
+
+{% for message in messages %}
+
+<div class="msg {% if message.sender == request.user %}me{% else %}other{% endif %}">
+    <div class="msg-name">{{ message.sender.username }}</div>
+    {{ message.text }}
+</div>
+
+{% endfor %}
+
+</div>
+
+<div class="chat-input">
+<input id="chat-message-input" type="text" placeholder="Написать сообщение...">
+<button id="chat-message-submit">➤</button>
+</div>
+
+</div>
+
+<script>
+
+let socket;
+
+function connectChat(){
+
+    socket = new WebSocket(
+        (window.location.protocol === "https:" ? "wss://" : "ws://")
+        + window.location.host
+        + "/ws/chat/"
+        + chatId
+        + "/"
+    );
+
+    socket.onopen = function(){
+        console.log("✅ CHAT CONNECTED");
+    };
+
+    socket.onerror = function(e){
+        console.log("❌ SOCKET ERROR", e);
+    };
+
+    socket.onclose = function(e){
+        console.log("❌ SOCKET CLOSED");
+
+        setTimeout(() => {
+            connectChat();
+        }, 2000);
+    };
+
+    socket.onmessage = function(e){
+
+        const data = JSON.parse(e.data);
+
+        const chat = document.getElementById("chat-log");
+
+        const isMe = data.username === "{{ request.user.username }}";
+
+        chat.innerHTML += `
+        <div class="msg ${isMe ? "me" : "other"}">
+            <div class="msg-name">${data.username}</div>
+            ${data.message}
+        </div>
+        `;
+
+        chat.scrollTop = chat.scrollHeight;
+    };
+}
+
+connectChat(); 
+</script>
+
+{% endblock %}

@@ -1,0 +1,69 @@
+<h2>Чат</h2>
+
+<div id="chat-log" style="height:300px; overflow:auto; border:1px solid white; padding:10px;">
+    {% for message in messages %}
+        <p><b>{{ message.sender.username }}:</b> {{ message.text }}</p>
+    {% endfor %}
+</div>
+
+<form id="chat-form">
+    <input id="chat-message-input" type="text" placeholder="Сообщение..." style="width:80%;">
+    <button type="submit">Send</button>
+</form>
+
+
+<script>
+
+// ❗ ВАЖНО: используем chat.id, а не room1
+const chatSocket = new WebSocket(
+    'ws://' + window.location.host +
+    '/ws/chat/{{ chat.id }}/'
+);
+
+// подключился
+chatSocket.onopen = function () {
+    console.log("✅ CHAT CONNECTED");
+};
+
+// получил сообщение
+chatSocket.onmessage = function(e) {
+
+    const data = JSON.parse(e.data);
+
+    const chat = document.querySelector('#chat-log');
+
+    chat.innerHTML += <p><b>${data.username}:</b> ${data.message}</p>;
+
+    chat.scrollTop = chat.scrollHeight;
+};
+
+// ошибка
+chatSocket.onerror = function(e){
+    console.log("❌ ERROR", e);
+};
+
+// отключился
+chatSocket.onclose = function () {
+    console.log("❌ CHAT DISCONNECTED");
+};
+
+
+// 🔥 ГЛАВНОЕ ИСПРАВЛЕНИЕ
+document.querySelector('#chat-form').addEventListener("submit", function(e){
+
+    e.preventDefault(); // ❗ УБИРАЕМ ПЕРЕЗАГРУЗКУ
+
+    const input = document.querySelector('#chat-message-input');
+
+    const message = input.value;
+
+    if (!message) return;
+
+    chatSocket.send(JSON.stringify({
+        'message': message
+    }));
+
+    input.value = "";
+});
+
+</script>

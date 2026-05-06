@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+
+/* 🔥 ОСНОВА */
+.container{
+    max-width:1000px;
+    margin:40px auto;
+}
+
+/* 🔥 ХЕДЕР */
+.profile-header{
+    display:flex;
+    gap:30px;
+    align-items:center;
+    margin-bottom:40px;
+}
+
+.avatar{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:#2a2a2e;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:40px;
+    color:#4ade80;
+    overflow:hidden;
+}
+
+.avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* 🔥 ИНФА */
+.profile-info h2{
+    margin-bottom:10px;
+}
+
+.profile-meta{
+    color:#9ca3af;
+    margin-bottom:10px;
+}
+
+/* 🔥 КНОПКИ */
+.btn-blue{
+    background:#2563eb;
+    color:white;
+    padding:8px 14px;
+    border-radius:10px;
+    text-decoration:none;
+    border:none;
+}
+
+.btn-red{
+    background:#ef4444;
+    color:white;
+    padding:8px 14px;
+    border-radius:10px;
+    border:none;
+}
+
+/* 🔥 СТАТА */
+.stats{
+    display:flex;
+    gap:15px;
+    margin:25px 0;
+}
+
+.stat{
+    flex:1;
+    background:#18181b;
+    padding:15px;
+    border-radius:14px;
+    text-align:center;
+    color:#4ade80;
+}
+
+/* 🔥 ОТЗЫВЫ */
+.review{
+    background:#18181b;
+    padding:12px;
+    border-radius:12px;
+    margin-top:10px;
+}
+
+/* 🔥 КАРТОЧКИ */
+.ads-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:20px;
+}
+
+.ad-card{
+    background:#18181b;
+    border-radius:14px;
+    padding:15px;
+    border:1px solid rgba(255,255,255,0.05);
+}
+
+.ad-card h4{
+    margin-bottom:8px;
+}
+
+.price{
+    color:#4ade80;
+    font-weight:600;
+}
+
+.meta{
+    color:#9ca3af;
+    font-size:13px;
+    margin-bottom:10px;
+}
+
+/* 🔥 ПУСТО */
+.empty{
+    opacity:0.6;
+    text-align:center;
+    margin-top:20px;
+}
+
+</style>
+
+
+<div class="container">
+
+<!-- 🔥 HEADER -->
+<div class="profile-header">
+
+    <div class="avatar">
+        {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}">
+        {% else %}
+            {{ profile_user.username|first|upper }}
+        {% endif %}
+    </div>
+
+    <div class="profile-info">
+
+        <h2>@{{ profile_user.username }}</h2>
+
+        <div class="profile-meta">
+            Телефон: {{ profile.phone|default:"Нет" }}<br>
+            Telegram: {{ profile.telegram|default:"Нет" }}
+        </div>
+
+        {% if request.user == profile_user %}
+        <a href="{% url 'edit_profile' %}" class="btn-blue">Редактировать</a>
+
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn-red">Выйти</button>
+        </form>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<!-- 🔥 СТАТА -->
+<div class="stats">
+
+    <div class="stat">
+        📦<br>
+        {{ ads.count }}<br>
+        Объявлений
+    </div>
+
+    <div class="stat">
+        👁<br>
+        {{ total_views }}<br>
+        Просмотров
+    </div>
+
+    <div class="stat">
+        ❤️<br>
+        {{ total_favorites }}<br>
+        В избранном
+    </div>
+
+</div>
+
+<hr>
+
+<!-- 🔥 ОТЗЫВЫ -->
+<h3>Отзывы</h3>
+
+{% if request.user != profile_user %}
+
+<form action="{% url 'add_review' profile_user.username %}" method="post">
+{% csrf_token %}
+
+<select name="rating" class="form-control mb-2">
+<option value="5">⭐️⭐️⭐️⭐️⭐️</option>
+<option value="4">⭐️⭐️⭐️⭐️</option>
+<option value="3">⭐️⭐️⭐️</option>
+<option value="2">⭐️⭐️</option>
+<option value="1">⭐️</option>
+</select>
+
+<textarea name="text" class="form-control mb-2"
+placeholder="Напишите отзыв"></textarea>
+
+<button class="btn btn-primary">Оставить отзыв</button>
+
+</form>
+
+{% endif %}
+
+{% for review in reviews %}
+
+<div class="review">
+<strong>{{ review.author.username }}</strong>
+<p>⭐️ {{ review.rating }}/5</p>
+<p>{{ review.text }}</p>
+</div>
+
+{% empty %}
+<p class="empty">Пока нет отзывов</p>
+{% endfor %}
+
+<hr>
+
+<!-- 🔥 ОБЪЯВЛЕНИЯ -->
+<h3>Объявления</h3>
+
+<div class="ads-grid">
+
+{% for ad in ads %}
+
+<div class="ad-card">
+
+<h4>{{ ad.title }}</h4>
+{% if not ad.is_published %}
+    <div style="margin-bottom:8px; color:#f59e0b; font-weight:600;">
+        ⏳ На модерации
+    </div>
+{% else %}
+    <div style="margin-bottom:8px; color:#4ade80; font-weight:600;">
+        ✅ Активно
+    </div>
+{% endif %}
+
+<div class="price">{{ ad.price }} ₽</div>
+
+<div class="meta">
+👁 {{ ad.views }} • ❤️ {{ ad.favorites_count }}
+</div>
+
+<a href="{% url 'ad_detail' ad.id %}">Открыть</a>
+
+{% if request.user == ad.author %}
+
+<br><br>
+
+<a href="{% url 'edit_ad' ad.id %}" class="btn btn-warning btn-sm">
+✏️ Редактировать
+</a>
+
+<form action="{% url 'delete_ad' ad.id %}" method="post" style="display:inline;">
+{% csrf_token %}
+<button class="btn btn-danger btn-sm">
+🗑 Удалить
+</button>
+</form>
+
+<br><br>
+
+<!-- 🔥 ВОТ ЧТО Я ДОБАВИЛ -->
+{% if ad.is_promoted %}
+    <div style="margin-top:8px; color:#4ade80; font-weight:500;">
+        🚀 Продвигается до {{ ad.promoted_until|date:"d.m H:i" }}
+    </div>
+{% else %}
+    <a href="{% url 'choose_promotion' ad.id %}"
+    style="display:inline-block; margin-top:8px; color:#2563eb;">
+        🚀 Продвинуть
+    </a>
+{% endif %}
+
+{% endif %}
+
+</div>
+
+{% empty %}
+<p class="empty">Нет объявлений</p>
+{% endfor %}
+{% endblock %}

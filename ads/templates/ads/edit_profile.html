@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container" style="max-width:600px;margin:40px auto;">
+
+<h2>Редактировать профиль</h2>
+
+<form method="post" enctype="multipart/form-data">
+
+    {% csrf_token %}
+
+    <div style="margin-bottom:15px;">
+        <label>Телефон</label>
+        <input type="text" name="phone" value="{{ profile.phone }}" class="form-control">
+    </div>
+
+    <div style="margin-bottom:15px;">
+        <label>Telegram</label>
+        <input type="text" name="telegram" value="{{ profile.telegram }}" class="form-control">
+    </div>
+
+    <div style="margin-bottom:15px;">
+        <label>Аватар</label>
+        <input type="file" name="avatar" class="form-control">
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Сохранить
+    </button>
+
+</form>
+
+</div>
+
+{% endblock %}

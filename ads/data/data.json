@@ -1,0 +1,79 @@
+{
+    "Авто": {
+    "BMW": ["1 Series","2 Series","3 Series","4 Series","5 Series","6 Series","7 Series","8 Series","7 Series","X1","X2","X3","X5","X6","X7","M1","M2","M3","M4","M5","M6","Z4"],
+    "Mercedes-Benz": ["A-Class","C-Class","E-Class","S-Class","GLA","GLB","GLC","GLE","GLS","G-Class"],
+    "Audi": ["A3","A4","A5","A6","A7","A8","Q3","Q5","Q7","Q8","TT","R8"],
+    "Toyota": ["Corolla","Camry","RAV4","Land Cruiser","Highlander","Prius","Yaris"],
+    "Volkswagen": ["Golf","Passat","Polo","Tiguan","Touareg","Jetta"],
+    "Hyundai": ["Elantra","Sonata","Tucson","Santa Fe","Creta","i30"],
+    "Kia": ["Rio","Ceed","K5","Sportage","Sorento","Picanto"],
+    "Honda": ["Civic","Accord","CR-V","HR-V"],
+    "Nissan": ["Micra","Almera","Qashqai","X-Trail","Patrol"],
+    "Mazda": ["Mazda2","Mazda3","Mazda6","CX-3","CX-5","CX-9"]
+    },
+
+    "Телефоны": {
+    "Apple": ["iPhone 8","iPhone X","iPhone XR","iPhone XS","iPhone 11","iPhone 12","iPhone 13","iPhone 14","iPhone 15"],
+    "Samsung": ["Galaxy S9","S10","S20","S21","S22","S23","S24","Note 10","Note 20"],
+    "Xiaomi": ["Mi 9","Mi 10","Mi 11","Mi 12","Mi 13","Redmi Note 10","Note 11","Note 12","Note 13"],
+    "Huawei": ["P20","P30","P40","P50","Mate 30","Mate 40","Mate 50"],
+    "Honor": ["20","30","50","70","90","Magic"],
+    "OnePlus": ["6","7","8","9","10","11"],
+    "Google": ["Pixel 4","Pixel 5","Pixel 6","Pixel 7","Pixel 8"]
+    },
+
+    "Ноутбуки": {
+    "Apple": ["MacBook Air M1","MacBook Air M2","MacBook Pro 13","MacBook Pro 14","MacBook Pro 16"],
+    "Dell": ["XPS 13","XPS 15","Inspiron 15","Alienware M15"],
+    "HP": ["Pavilion","Envy","Omen","ProBook","EliteBook"],
+    "Lenovo": ["ThinkPad X1","ThinkPad T14","IdeaPad 5","Legion 5","Yoga"],
+    "Asus": ["ZenBook","VivoBook","ROG Strix","TUF Gaming"],
+    "Acer": ["Aspire 5","Swift 3","Nitro 5","Predator Helios"],
+    "MSI": ["GF63","Katana","Stealth 15M"]
+    },
+
+    "Одежда": {
+    "Nike": ["Air Max","Air Force 1","Dunk","Tech Fleece"],
+    "Adidas": ["Ultraboost","NMD","Superstar","Gazelle"],
+    "Puma": ["RS-X","Suede","Future Rider"],
+    "Zara": ["Куртки","Пальто","Футболки","Джинсы"],
+    "H&M": ["Футболки","Худи","Джинсы","Куртки"],
+    "Uniqlo": ["Ultra Light Down","AIRism","Heattech"],
+    "Gucci": ["Сумки","Кроссовки","Одежда"],
+    "Louis Vuitton": ["Сумки","Аксессуары"]
+    },
+
+    "услуги": {
+    "Ремонт техники": ["Телефоны","Ноутбуки","Телевизоры"],
+    "Ремонт квартир": ["Косметический","Капитальный"],
+    "Красота": ["Маникюр","Парикмахер","Массаж"],
+    "Обучение": ["Репетитор","Курсы","Онлайн"],
+    "IT услуги": ["Создание сайтов","Дизайн","SEO"]
+    },
+
+    "недвижимость": {
+    "Квартиры": ["Студия","1-комнатная","2-комнатная","3-комнатная"],
+    "Дома": ["Коттедж","Таунхаус","Дача"],
+    "Коммерческая": ["Офис","Склад","Магазин"],
+    "Земля": ["ИЖС","СНТ"]
+    },
+
+    "запчасти и аксесуары": {
+    "Двигатель": ["Контрактный","Новый"],
+    "Подвеска": ["Амортизаторы","Пружины","Рычаги"],
+    "Кузов": ["Капот","Бампер","Двери"],
+    "Электрика": ["Фары","Генератор","Стартер"],
+    "Тормоза": ["Диски","Колодки"]
+    },
+
+    "Готовый бизнес и оборудование": {
+    "Общепит": ["Кофейня","Ресторан","Фастфуд"],
+    "Торговля": ["Магазин одежды","Продуктовый магазин"],
+    "Онлайн бизнес": ["Интернет-магазин","Сайт"],
+    "Оборудование": ["Станки","Холодильники"]
+    },
+
+    "Другое": {
+    "Разное": ["Б/у","Новое","Любое"]
+    }
+}

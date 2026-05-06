@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.wrap{
+    max-width:600px;
+    margin:50px auto;
+}
+
+.plan{
+    background:#18181b;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:15px;
+    cursor:pointer;
+    transition:0.2s;
+    border:1px solid #222;
+}
+
+.plan:hover{
+    border:1px solid #2563eb;
+    transform:translateY(-3px);
+}
+
+.price{
+    color:#4ade80;
+    font-size:20px;
+    margin-top:10px;
+}
+</style>
+
+<div class="wrap">
+
+<h2>🚀 Продвижение объявления</h2>
+
+<p><strong>{{ ad.title }}</strong></p>
+
+<!-- 1 день -->
+<div class="plan" onclick="location.href='{% url 'create_payment' ad.id 1 %}'">
+    🚀 1 день
+    <div class="price">99 ₽</div>
+</div>
+
+<!-- 3 дня -->
+<div class="plan" onclick="location.href='{% url 'create_payment' ad.id 3 %}'">
+    🔥 3 дня
+    <div class="price">199 ₽</div>
+</div>
+
+<!-- 7 дней -->
+<div class="plan" onclick="location.href='{% url 'create_payment' ad.id 7 %}'">
+    💎 7 дней
+    <div class="price">399 ₽</div>
+</div>
+
+</div>
+
+{% endblock %}

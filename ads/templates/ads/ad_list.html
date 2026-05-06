@@ -1,0 +1,786 @@
+{% extends "base.html" %}
+{% block content %}
+<meta charset="UTF-8">
+<title>FYND</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+/* 🔥 БАЗА */
+body{
+background:#0e0e10;
+color:white;
+font-family:'Inter',sans-serif;
+}
+
+
+/* 🔥 КОНТЕЙНЕР */
+.app-container{
+max-width:1200px;
+margin:0 auto;
+padding:16px;
+}
+
+/* 🔥 ЗАГОЛОВОК */
+.app-title{
+font-size:28px;
+font-weight:600;
+}
+
+/* 🔥 КНОПКИ */
+.add-btn{
+background:#2563eb;
+color:white;
+padding:10px 16px;
+border-radius:12px;
+text-decoration:none;
+font-weight:500;
+margin-left:8px;
+transition:0.25s;
+}
+
+.add-btn:hover{
+background:#1d4ed8;
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(37,99,235,0.4);
+}
+
+/* 🔥 ПОИСК */
+.search-input{
+flex:1;
+background:#18181b;
+border:none;
+color:white;
+padding:12px 16px;
+border-radius:12px;
+}
+
+.search-btn{
+background:#2563eb;
+border:none;
+color:white;
+padding:12px 20px;
+border-radius:12px;
+}
+
+/* 🔥 СЕТКА */
+.ads-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px,1fr));
+    gap:16px;
+    width:100%;
+}
+
+/* 🔥 КАРТОЧКА */
+.ad-card{
+background:#18181b;
+border-radius:14px;
+overflow:hidden;
+cursor:pointer;
+position:relative;
+border:1px solid rgba(255,255,255,0.03);
+
+opacity:0;
+transform:translateY(20px);
+animation:fadeUp 0.5s forwards;
+}
+
+.ad-card:hover{
+transform:translateY(-8px) scale(1.02);
+box-shadow:0 25px 60px rgba(0,0,0,0.8);
+}
+
+/* 🔥 ПОЯВЛЕНИЕ */
+@keyframes fadeUp{
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+/* 🔥 КАРТИНКА */
+.ad-image{
+height:160px;
+overflow:hidden;
+position:relative;
+}
+
+.ad-img{
+width:100%;
+height:100%;
+object-fit:cover;
+transition:0.3s;
+}
+
+.ad-card:hover .ad-img{
+transform:scale(1.05);
+}
+
+/* затемнение */
+.ad-image::after{
+content:"";
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+opacity:0;
+transition:0.3s;
+}
+
+.ad-card:hover .ad-image::after{
+opacity:1;
+}
+
+/* 🔥 ТЕЛО */
+.ad-body{
+padding:14px;
+}
+
+.ad-title{
+font-size:15px;
+font-weight:500;
+margin-bottom:6px;
+height:40px;
+overflow:hidden;
+}
+
+.price{
+font-size:18px;
+font-weight:700;
+color:#4ade80;
+margin-bottom:6px;
+}
+
+.meta{
+font-size:12px;
+color:#9ca3af;
+margin-bottom:8px;
+}
+
+.specs{
+font-size:13px;
+color:#d1d5db;
+}
+
+/* ❤️ */
+.favorite-icon{
+position:absolute;
+top:10px;
+right:10px;
+z-index:10;
+}
+
+.favorite-icon button:hover{
+transform:scale(1.2);
+}
+
+.favorite-icon button:active{
+transform:scale(0.9);
+}
+
+/* NEW */
+.new-badge{
+position:absolute;
+top:10px;
+left:10px;
+background:#4ade80;
+color:black;
+padding:3px 7px;
+border-radius:8px;
+font-size:11px;
+font-weight:600;
+}
+
+/* 🔥 FILTER */
+.filter-drawer{
+    position:fixed;
+    top:0;
+    left:-320px;
+    width:260px;
+    height:100vh;
+
+    overflow-y:auto;
+
+    background:#18181b;
+    padding:20px;
+    transition:0.3s;
+    z-index:1000;
+
+    box-shadow:2px 0 15px rgba(3, 23, 246, 0.5);
+
+    
+
+}
+
+.filter-drawer.active{
+left:0;
+}
+
+/* 🔥 СКРОЛЛ */
+::-webkit-scrollbar{
+width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+background:#2a2a2e;
+border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+background:#3f3f46;
+}
+
+@media (max-width:768px){
+
+.app-title{
+font-size:20px;
+}
+
+.ads-grid{
+grid-template-columns:1fr;
+gap:12px;
+}
+
+.search-input{
+font-size:14px;
+}
+
+.search-btn{
+padding:10px;
+}
+
+}
+
+@media (max-width:768px){
+
+.filters{
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 85%;
+    max-width: 320px;
+    height: 100vh;
+    background: #111;
+    z-index: 999;
+    padding: 20px;
+    overflow-y: auto;
+    transition: 0.3s;
+}
+
+.filters.active{
+    left: 0;
+}
+
+}
+
+@media (max-width:768px){
+
+    .d-flex.align-items-center{
+        flex-wrap:wrap;
+        gap:10px;
+    }
+
+    .add-btn{
+        flex:1 1 auto;
+        text-align:center;
+        font-size:14px;
+        padding:10px;
+    }
+
+}
+
+#overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
+    z-index:999;
+}
+
+#overlay.active{
+    opacity:1;
+    pointer-events:auto;
+}
+</style>
+
+
+
+
+<div class="app-container">
+
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<div class="app-title">
+FYND <span style="color:#4ade80;font-weight:400;">— находи выгодно</span>
+</div>
+
+<div class="d-flex align-items-center">
+
+
+
+{% if user.is_authenticated %}
+<a href="{% url 'add_ad' %}" class="add-btn">➕ Подать объявление</a>
+<a href="{% url 'profile' user.username %}" class="add-btn">👤 Мой профиль</a>
+{% else %}
+<a href="/accounts/login/" class="add-btn">Регистрация / Вход</a>
+<a href="/accounts/login/" class="add-btn">➕ Подать объявление</a>
+{% endif %}
+
+<a href="{% url 'favorites' %}" class="add-btn">❤️ Избранное</a>
+
+{% if user.is_authenticated %}
+<a href="/chats/" class="add-btn">
+💬 Чаты
+<span id="chat-badge" style="background:red;padding:3px 7px;border-radius:10px;font-size:12px;margin-left:6px;{% if unread == 0 %}display:none{% endif %}">
+{{ unread }}
+</span>
+</a>
+{% endif %}
+
+</div>
+
+</div>
+
+<div id="overlay" onclick="toggleFilter()"></div>
+
+
+
+<!-- 🔥 КАТЕГОРИИ СВЕРХУ -->
+
+<style>
+.categories-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.category-chip{
+    padding:8px 14px;
+    border-radius:20px;
+    background:#18181b;
+    border:1px solid #222;
+    color:#ccc;
+    font-size:14px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.category-chip:hover{
+    background:#2563eb;
+    color:white;
+    transform:translateY(-2px);
+}
+
+.category-chip.active{
+    background:#2563eb;
+    color:white;
+}
+
+.promoted{
+    border:2px solid #4ade80;
+    box-shadow:0 0 25px rgba(74,222,128,0.25);
+}
+
+.top-badge{
+    position:absolute;
+    top:10px;
+    left:10px;
+    background:#4ade80;
+    color:black;
+    padding:4px 8px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:600;
+    z-index:10;
+}
+
+</style>
+
+<div class="categories-row">
+
+<a href="/" class="category-chip">Все</a>
+
+{% for c in categories %}
+<a href="/?category={{ c.id }}" class="category-chip">
+📂 {{ c.name }}
+</a>
+{% endfor %}
+
+</div>
+
+<!-- SEARCH + SORT + FILTER -->
+
+<div style="display:flex; gap:10px; align-items:center; margin-bottom:25px; flex-wrap:wrap;">
+
+<form method="GET" style="display:flex; gap:10px; flex:1;">
+
+<input
+type="text"
+name="q"
+value="{{ query }}"
+placeholder="Поиск: телефон, ноутбук, Москва..."
+class="search-input"
+style="flex:1;"
+>
+
+<select name="sort" class="form-select" style="max-width:180px;">
+
+<option value="">🆕 Новые</option>
+
+<option value="cheap" {% if sort == "cheap" %}selected{% endif %}>
+💰 Дешевые
+</option>
+
+<option value="expensive" {% if sort == "expensive" %}selected{% endif %}>
+💎 Дорогие
+</option>
+
+<option value="popular" {% if sort == "popular" %}selected{% endif %}>
+🔥 Популярные
+</option>
+
+</select>
+
+<button type="submit" class="search-btn">
+🔎 Найти
+</button>
+
+</form>
+
+<button class="btn btn-outline-light"
+style="white-space:nowrap;"
+onclick="toggleFilter()">
+⚙️ Фильтр
+</button>
+
+</div>
+
+
+
+<p style="opacity:0.6; margin-bottom:15px;">
+Найдено объявлений: {{ ads|length }}
+</p>
+
+<!-- ADS -->
+
+<div class="ads-grid">
+
+{% for ad in ads %}
+
+<div class="ad-card {% if ad.is_promoted %}promoted{% endif %}"
+style="animation-delay:{{ forloop.counter0|add:'1' }}0ms"
+onclick="window.location.href='{% url 'ad_detail' ad.id %}'">
+
+    {% if ad.is_promoted %}
+    <div class="top-badge">🚀 ТОП</div>
+    {% endif %}
+
+    <div class="favorite-icon">
+        <form action="{% url 'toggle_favorite' ad.id %}" method="post"
+        onclick="event.stopPropagation();">
+        {% csrf_token %}
+        <button type="submit"
+        style="background:none;border:none;font-size:20px;color:white;">
+        ❤️
+        </button>
+        </form>
+    </div>
+
+    <div class="new-badge">NEW</div>
+
+    <div class="ad-image">
+        {% if ad.images.first %}
+            <img src="{{ ad.images.first.image.url }}" class="ad-img">
+        {% elif ad.image %}
+            <img src="{{ ad.image.url }}" class="ad-img">
+        {% else %}
+            <div class="no-img">📦</div>
+        {% endif %}
+    </div>
+
+    <div class="ad-body">
+
+        <div class="ad-title">{{ ad.title }}</div>
+
+        <div class="price">{{ ad.price }} ₽</div>
+
+        <div class="meta">
+            📍 {{ ad.city }} • {{ ad.created_at|timesince }} назад
+        </div>
+
+        <div class="specs">
+            {% if ad.year %}{{ ad.year }}{% endif %}
+            {% if ad.mileage %} • {{ ad.mileage }} км{% endif %}
+            {% if ad.transmission %} • {{ ad.transmission }}{% endif %}
+            {% if ad.engine %} • {{ ad.engine }}{% endif %}
+            {% if ad.drive %} • {{ ad.drive }}{% endif %}
+            {% if ad.power %} • {{ ad.power }} л.с{% endif %}
+            {% if ad.wheel %} • {{ ad.wheel }}{% endif %}
+            {% if ad.memory %} • {{ ad.memory }} GB{% endif %}
+            {% if ad.color %} • {{ ad.color }}{% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+{% empty %}
+
+<div style="grid-column:1/-1; text-align:center; opacity:0.6;">
+    Объявлений пока нет
+</div>
+
+{% endfor %}
+
+</div>
+
+
+
+
+
+<!-- FILTER DRAWER -->
+
+<div id="filterDrawer" class="filter-drawer filters">
+
+<form method="GET">
+
+<!-- 🚗 АВТО -->
+<div id="autoFields" style="display:none;">
+
+<input name="year" placeholder="Год" class="form-control mb-3">
+
+<input name="mileage" placeholder="Пробег" class="form-control mb-3">
+
+<select name="transmission" class="form-control mb-3">
+<option value="">Коробка</option>
+<option>Автомат</option>
+<option>Механика</option>
+<option>Вариатор</option>
+<option>Робот</option>
+</select>
+
+<select name="engine" class="form-control mb-3">
+<option value="">Двигатель</option>
+<option>Бензин</option>
+<option>Дизель</option>
+<option>Гибрид</option>
+<option>Электро</option>
+</select>
+
+<select name="drive" class="form-control mb-3">
+<option value="">Привод</option>
+<option>Передний</option>
+<option>Задний</option>
+<option>Полный</option>
+</select>
+
+<input name="power" placeholder="Л.с" class="form-control mb-3">
+
+<select name="wheel" class="form-control mb-3">
+<option value="">Руль</option>
+<option>Левый</option>
+<option>Правый</option>
+</select>
+
+<input name="color" placeholder="Цвет" class="form-control mb-3">
+
+</div>
+
+
+<!-- 📱 ТЕЛЕФОНЫ -->
+<div id="phoneFields" style="display:none;">
+
+<select name="memory" class="form-control mb-3">
+<option value="">Память</option>
+<option>4</option>
+<option>8</option>
+<option>16</option>
+<option>32</option>
+<option>64</option>
+<option>128</option>
+<option>256</option>
+<option>512</option>
+<option>1024</option>
+<option>2048</option>
+</select>
+
+<input name="color_phone" placeholder="Цвет" class="form-control mb-3">
+
+</div>
+
+<h5 style="margin-bottom:20px;">Фильтр</h5>
+
+<select name="category" id="categorySelect" class="form-control mb-3">
+
+<option value="">📂 Все категории</option>
+
+{% for c in categories %}
+<option value="{{ c.id }}" {% if category == c.id|stringformat:"s" %}selected{% endif %}>
+{{ c.name }}
+</option>
+{% endfor %}
+
+</select>
+
+
+<select name="brand" id="brandSelect" class="form-control mb-3">
+
+<option value="">🏷 Все марки</option>
+
+{% for b in brands %}
+<option value="{{ b.id }}" {% if brand == b.id|stringformat:"s" %}selected{% endif %}>
+{{ b.name }}
+</option>
+{% endfor %}
+
+</select>
+<select name="model" id="modelSelect" class="form-control mb-3">
+
+<option value="">📦 Все модели</option>
+
+{% for m in models %}
+<option value="{{ m.id }}" {% if model == m.id|stringformat:"s" %}selected{% endif %}>
+{{ m.name }}
+</option>
+{% endfor %}
+
+</select>
+
+<input
+type="text"
+name="city"
+placeholder="Город"
+value="{{ city }}"
+class="form-control mb-3"
+>
+
+<input
+type="number"
+name="price_min"
+placeholder="Цена от"
+value="{{ price_min }}"
+class="form-control mb-3"
+>
+
+<input
+type="number"
+name="price_max"
+placeholder="Цена до"
+value="{{ price_max }}"
+class="form-control mb-3"
+>
+
+<button class="btn btn-primary w-100">
+Применить
+</button>
+
+</form>
+
+</div>
+
+
+
+<script>
+
+function toggleFilter(){
+    const el = document.getElementById("filterDrawer");
+    const overlay = document.getElementById("overlay");
+
+    if (el) el.classList.toggle("active");
+    if (overlay) overlay.classList.toggle("active");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+
+
+    // 🔥 фильтр
+    const category = document.getElementById("categorySelect");
+    const brand = document.getElementById("brandSelect");
+    const model = document.getElementById("modelSelect");
+
+    if (!category || !brand || !model) return;
+
+    // 🚗📱 переключение полей
+    function toggleFields(){
+        const text = category.options[category.selectedIndex].text.toLowerCase();
+
+        const auto = document.getElementById("autoFields");
+        const phone = document.getElementById("phoneFields");
+
+        if (!auto || !phone) return;
+
+        if (text.includes("авто")) {
+            auto.style.display = "block";
+            phone.style.display = "none";
+        }
+        else if (text.includes("телефон")) {
+            auto.style.display = "none";
+            phone.style.display = "block";
+        }
+        else {
+            auto.style.display = "none";
+            phone.style.display = "none";
+        }
+    }
+
+    // 📂 категория → бренды
+    category.addEventListener("change", () => {
+
+        if (!category.value) return;
+
+        fetch(`/api/brands/?category_id=${category.value}`)
+        .then(r => r.json())
+        .then(data => {
+
+            brand.innerHTML = `<option value="">Марка</option>`;
+
+            data.brands.forEach(b => {
+                brand.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+            });
+
+            model.innerHTML = `<option value="">Модель</option>`;
+        });
+
+        toggleFields();
+    });
+
+    // 🏷 бренд → модели
+    brand.addEventListener("change", () => {
+
+        if (!brand.value) return;
+
+        fetch(`/api/models/?brand_id=${brand.value}`)
+        .then(r => r.json())
+        .then(data => {
+
+            model.innerHTML = `<option value="">Модель</option>`;
+
+            data.models.forEach(m => {
+                model.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+            });
+
+        });
+
+    });
+
+    // 🔥 запуск при загрузке
+    toggleFields();
+
+});
+
+</script>
+
+{% endblock %}

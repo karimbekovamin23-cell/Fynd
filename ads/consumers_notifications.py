@@ -23,16 +23,19 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+async def disconnect(self, close_code):
 
-    async def disconnect(self, close_code):
-
-        print("DISCONNECT:", self.group_name)
+    if hasattr(self, "group_name"):
 
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
         )
 
+        print("DISCONNECT:", self.group_name)
+
+    else:
+        print("DISCONNECT WITHOUT GROUP")
 
     async def send_notification(self, event):
 

@@ -11,11 +11,11 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "daycare-rebuttal-squeegee.ngrok-free.dev",
+    "fynd-production.up.railway.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://daycare-rebuttal-squeegee.ngrok-free.dev",
+    "https://fynd-production.up.railway.app",
 ]
 
 CSRF_COOKIE_SECURE = False

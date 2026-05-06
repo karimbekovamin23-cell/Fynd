@@ -14,18 +14,17 @@
 
 <script>
 
-// ❗ ВАЖНО: используем chat.id, а не room1
+const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+
 const chatSocket = new WebSocket(
-    'ws://' + window.location.host +
+    protocol + window.location.host +
     '/ws/chat/{{ chat.id }}/'
 );
 
-// подключился
 chatSocket.onopen = function () {
-    console.log("✅ CHAT CONNECTED");
+    console.log("CHAT CONNECTED");
 };
 
-// получил сообщение
 chatSocket.onmessage = function(e) {
 
     const data = JSON.parse(e.data);
@@ -37,21 +36,17 @@ chatSocket.onmessage = function(e) {
     chat.scrollTop = chat.scrollHeight;
 };
 
-// ошибка
 chatSocket.onerror = function(e){
-    console.log("❌ ERROR", e);
+    console.log("CHAT ERROR", e);
 };
 
-// отключился
 chatSocket.onclose = function () {
-    console.log("❌ CHAT DISCONNECTED");
+    console.log("CHAT DISCONNECTED");
 };
 
-
-// 🔥 ГЛАВНОЕ ИСПРАВЛЕНИЕ
 document.querySelector('#chat-form').addEventListener("submit", function(e){
 
-    e.preventDefault(); // ❗ УБИРАЕМ ПЕРЕЗАГРУЗКУ
+    e.preventDefault();
 
     const input = document.querySelector('#chat-message-input');
 

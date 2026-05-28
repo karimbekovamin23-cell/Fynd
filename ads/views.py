@@ -16,7 +16,7 @@ import uuid
 import json
 import requests
 
-from .models import Ad, Profile, Review, Favorite, Chat, Message, Payment, Category, Brand, Model
+from .models import Ad, AdImage, Profile, Review, Favorite, Chat, Message, Payment, Category, Brand, Model
 from .forms import AdForm
 
 
@@ -39,6 +39,10 @@ def ad_list(request):
         promotion_level=0,
         is_promoted=False
     )
+    Ad.objects.filter(
+        expires_at__lt=timezone.now(),
+        is_published=True
+    ).update(is_published=False)
 
     query = request.GET.get('q') or ''
     city = request.GET.get('city')
@@ -158,6 +162,8 @@ def add_ad(request):
             ad.is_published = False
             ad.expires_at = timezone.now() + timedelta(days=30)
             ad.save()
+            for img in request.FILES.getlist('images'):
+                AdImage.objects.create(ad=ad, image=img)
             messages.success(request, 'Объявление отправлено на модерацию 🚀')
             return redirect('ad_list')
     else:

@@ -58,7 +58,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             receiver_id = chat.buyer_id
 
-        print("SEND MESSAGE TO:", receiver_id)
         # ❌ не отправляем уведомление самому себе
         if receiver_id == user.id:
             return

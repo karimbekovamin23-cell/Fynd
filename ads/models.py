@@ -88,6 +88,15 @@ class Ad(models.Model):
 
     is_published = models.BooleanField(default=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['is_published', '-created_at']),
+            models.Index(fields=['is_published', 'price']),
+            models.Index(fields=['is_published', '-views']),
+            models.Index(fields=['promoted_until']),
+            models.Index(fields=['city']),
+        ]
+
     def __str__(self):
         return self.title
 

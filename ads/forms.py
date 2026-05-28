@@ -141,7 +141,13 @@ class AdForm(forms.ModelForm):
             'image': forms.FileInput(attrs={'class': 'form-control'})
         }
 
-    # 🔥 ВАЖНО — ДИНАМИКА (главный фикс)
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image and hasattr(image, 'size'):
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Размер изображения не должен превышать 5 МБ.")
+        return image
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

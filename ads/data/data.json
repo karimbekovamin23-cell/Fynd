@@ -1,6 +1,6 @@
 {
     "Авто": {
-    "BMW": ["1 Series","2 Series","3 Series","4 Series","5 Series","6 Series","7 Series","8 Series","7 Series","X1","X2","X3","X5","X6","X7","M1","M2","M3","M4","M5","M6","Z4"],
+    "BMW": ["1 Series","2 Series","3 Series","4 Series","5 Series","6 Series","7 Series","8 Series","X1","X2","X3","X5","X6","X7","M2","M3","M4","M5","Z4"],
     "Mercedes-Benz": ["A-Class","C-Class","E-Class","S-Class","GLA","GLB","GLC","GLE","GLS","G-Class"],
     "Audi": ["A3","A4","A5","A6","A7","A8","Q3","Q5","Q7","Q8","TT","R8"],
     "Toyota": ["Corolla","Camry","RAV4","Land Cruiser","Highlander","Prius","Yaris"],

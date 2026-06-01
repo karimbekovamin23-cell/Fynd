@@ -258,12 +258,28 @@ def edit_profile(request):
     profile = request.user.profile
 
     if request.method == "POST":
+        new_username = request.POST.get("username", "").strip()
+        error = None
+
+        if not new_username:
+            error = "Имя пользователя не может быть пустым"
+        elif len(new_username) > 150:
+            error = "Имя пользователя слишком длинное (максимум 150 символов)"
+        elif User.objects.exclude(pk=request.user.pk).filter(username=new_username).exists():
+            error = "Это имя уже занято"
+
+        if error:
+            return render(request, "ads/edit_profile.html", {"profile": profile, "error": error})
+
+        request.user.username = new_username
+        request.user.save(update_fields=["username"])
+
         profile.phone = request.POST.get("phone")
         profile.telegram = request.POST.get("telegram")
         if request.FILES.get("avatar"):
             profile.avatar = request.FILES.get("avatar")
         profile.save()
-        return redirect("profile", username=request.user.username)
+        return redirect("profile", username=new_username)
 
     return render(request, "ads/edit_profile.html", {"profile": profile})
 

@@ -10,6 +10,17 @@
 
     {% csrf_token %}
 
+    {% if error %}
+    <div style="background:#7f1d1d;color:#fca5a5;padding:10px 14px;border-radius:10px;margin-bottom:15px;font-size:0.9rem;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div style="margin-bottom:15px;">
+        <label>Имя пользователя</label>
+        <input type="text" name="username" value="{{ request.user.username }}" class="form-control" maxlength="150">
+    </div>
+
     <div style="margin-bottom:15px;">
         <label>Телефон</label>
         <input type="text" name="phone" value="{{ profile.phone }}" class="form-control">

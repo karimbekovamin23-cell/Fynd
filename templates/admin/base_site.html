@@ -1,0 +1,417 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | FYND{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">⚡ FYND Admin</a></h1>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+/* ── CSS VARIABLES (Django admin 4+ использует их для иконок и цветов) ── */
+:root, [data-theme="dark"], [data-theme="light"], [data-theme="auto"] {
+    --primary: #e94560;
+    --accent: #16213e;
+    --primary-fg: #fff;
+
+    --body-fg: #e0e0e0;
+    --body-bg: #0f0f1a;
+    --body-quiet-color: rgba(255,255,255,0.45);
+    --body-loud-color: #fff;
+
+    --header-color: #fff;
+    --header-branding-color: #fff;
+    --header-bg: #1a1a2e;
+    --header-link-color: rgba(255,255,255,0.85);
+
+    --breadcrumbs-fg: rgba(255,255,255,0.65);
+    --breadcrumbs-link-fg: #fff;
+    --breadcrumbs-bg: #16213e;
+
+    --link-fg: #7cb9e8;
+    --link-hover-color: #fff;
+    --link-selected-fg: #aacfe8;
+
+    --hairline-color: rgba(255,255,255,0.07);
+    --border-color: rgba(255,255,255,0.13);
+
+    --error-fg: #e94560;
+
+    --message-success-bg: rgba(76,175,80,0.18);
+    --message-warning-bg: rgba(255,193,7,0.18);
+    --message-error-bg: rgba(233,69,96,0.18);
+
+    --darkened-bg: #1a1a2e;
+    --selected-bg: rgba(124,185,232,0.12);
+    --selected-row: rgba(233,69,96,0.08);
+
+    --button-fg: #fff;
+    --button-bg: #e94560;
+    --button-hover-bg: #c73652;
+    --default-button-bg: #e94560;
+    --default-button-hover-bg: #c73652;
+    --close-button-bg: #444;
+    --close-button-hover-bg: #555;
+    --delete-button-bg: #c73652;
+    --delete-button-hover-bg: #a02a42;
+
+    --object-tools-fg: #fff;
+    --object-tools-bg: #333;
+    --object-tools-hover-bg: #e94560;
+
+    --font-family-primary: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-family-monospace: 'Consolas', 'Courier New', monospace;
+}
+
+/* ── BASE ── */
+* { box-sizing: border-box; }
+
+html, body {
+    background: #0f0f1a !important;
+    color: #e0e0e0 !important;
+    font-family: 'Segoe UI', system-ui, sans-serif !important;
+}
+
+/* ── HEADER ── */
+#header {
+    background: #1a1a2e !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4) !important;
+}
+#branding h1 { color: #fff !important; font-size: 1.3rem !important; }
+#branding h1 a { color: #fff !important; text-decoration: none !important; }
+#user-tools { color: rgba(255,255,255,0.6) !important; }
+#user-tools a { color: rgba(255,255,255,0.75) !important; }
+#user-tools a:hover { color: #fff !important; }
+
+/* ── BREADCRUMBS ── */
+div.breadcrumbs {
+    background: #16213e !important;
+    color: rgba(255,255,255,0.55) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 8px 24px !important;
+    font-size: 0.85rem !important;
+}
+div.breadcrumbs a { color: rgba(255,255,255,0.75) !important; }
+div.breadcrumbs a:hover { color: #fff !important; }
+
+/* ── SIDEBAR ── */
+#nav-sidebar {
+    background: #1a1a2e !important;
+    border-right: 1px solid rgba(255,255,255,0.07) !important;
+}
+.sticky .sidebar-title, .sidebar-title {
+    background: #16213e !important;
+    color: rgba(255,255,255,0.45) !important;
+    font-size: 0.72rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+#nav-sidebar .module th.section { background: #16213e !important; }
+#nav-sidebar .current-app { background: rgba(233,69,96,0.12) !important; }
+#nav-sidebar a { color: rgba(255,255,255,0.7) !important; }
+#nav-sidebar a:hover { color: #fff !important; }
+
+/* ── MAIN CONTENT ── */
+#content { background: #0f0f1a !important; }
+#content-main { background: transparent !important; }
+h1 { color: #fff !important; font-weight: 700 !important; }
+h2, h3, h4 { color: rgba(255,255,255,0.85) !important; }
+
+/* ── MODULES / CARDS ── */
+.module {
+    background: #1a1a2e !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    margin-bottom: 16px !important;
+}
+.module caption, .module h2, .module > h2 {
+    background: #16213e !important;
+    color: rgba(255,255,255,0.6) !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 10px 16px !important;
+    font-weight: 600 !important;
+}
+.module table { background: transparent !important; width: 100% !important; }
+.module th, .module td { color: #e0e0e0 !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; }
+.module .addlink, .module .changelink { color: #7cb9e8 !important; }
+
+/* ── RESULT TABLE ── */
+#result_list { border-collapse: collapse !important; }
+#result_list thead th {
+    background: #16213e !important;
+    color: rgba(255,255,255,0.6) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    padding: 10px 12px !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+#result_list thead th a, #result_list thead th a:visited { color: rgba(255,255,255,0.65) !important; }
+#result_list thead th a:hover { color: #fff !important; }
+#result_list thead th.sorted { background: #1e2d46 !important; }
+#result_list tbody tr { background: transparent !important; transition: background 0.15s; }
+#result_list tbody tr.row1 { background: transparent !important; }
+#result_list tbody tr.row2 { background: rgba(255,255,255,0.015) !important; }
+#result_list tbody tr:hover { background: rgba(124,185,232,0.06) !important; }
+#result_list tbody td, #result_list tbody th {
+    color: #e0e0e0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    padding: 10px 12px !important;
+}
+
+/* ── OBJECT TOOLS (кнопки сверху справа) ── */
+ul.object-tools li a {
+    background: #333 !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+    padding: 6px 14px !important;
+    font-size: 0.8rem !important;
+}
+ul.object-tools li a:hover { background: #e94560 !important; }
+ul.object-tools li .addlink { background: #e94560 !important; }
+ul.object-tools li .addlink:hover { background: #c73652 !important; }
+
+/* ── ACTIONS BAR ── */
+.actions {
+    background: #16213e !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 8px !important;
+    margin-bottom: 8px !important;
+    padding: 10px 12px !important;
+}
+.actions label { color: rgba(255,255,255,0.6) !important; font-size: 0.85rem !important; }
+.actions select {
+    background: #0f0f1a !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255,255,255,0.13) !important;
+    border-radius: 6px !important;
+    padding: 5px 8px !important;
+}
+
+/* ── FILTER SIDEBAR ── */
+#changelist-filter {
+    background: #1a1a2e !important;
+    border-left: 1px solid rgba(255,255,255,0.07) !important;
+}
+#changelist-filter h2 {
+    background: #16213e !important;
+    color: rgba(255,255,255,0.45) !important;
+    font-size: 0.72rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 10px 16px !important;
+}
+#changelist-filter h3 {
+    color: rgba(255,255,255,0.5) !important;
+    font-size: 0.78rem !important;
+    margin: 12px 0 4px !important;
+    text-transform: uppercase !important;
+}
+#changelist-filter ul { padding: 0 !important; list-style: none !important; }
+#changelist-filter li { padding: 2px 0 !important; }
+#changelist-filter li a { color: rgba(255,255,255,0.65) !important; font-size: 0.85rem !important; }
+#changelist-filter li.selected a { color: #fff !important; font-weight: 600 !important; }
+#changelist-filter li a:hover { color: #fff !important; }
+#changelist-filter .chosen { color: #e94560 !important; }
+
+/* ── SEARCH ── */
+#toolbar {
+    background: #1a1a2e !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 8px 16px !important;
+}
+#searchbar {
+    background: #0f0f1a !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255,255,255,0.13) !important;
+    border-radius: 6px !important;
+    padding: 7px 12px !important;
+}
+#toolbar input[type="submit"] {
+    background: #e94560 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 7px 16px !important;
+    font-size: 0.85rem !important;
+}
+
+/* ── BUTTONS ── */
+.button, input[type="submit"], input[type="button"],
+.submit-row input[type="submit"], a.button {
+    background: #e94560 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 7px !important;
+    padding: 9px 18px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background 0.2s !important;
+}
+.button:hover, input[type="submit"]:hover { background: #c73652 !important; }
+.button.default { background: #e94560 !important; }
+.deletelink, a.deletelink {
+    background: #7a2030 !important;
+    color: #ffaaaa !important;
+    border-radius: 7px !important;
+    padding: 9px 18px !important;
+}
+.deletelink:hover { background: #c73652 !important; color: #fff !important; }
+
+/* ── SUBMIT ROW ── */
+.submit-row {
+    background: #1a1a2e !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 12px 20px !important;
+    border-radius: 0 0 10px 10px !important;
+}
+
+/* ── FORM FIELDS ── */
+input[type="text"], input[type="password"], input[type="number"],
+input[type="email"], input[type="url"], input[type="search"],
+textarea, select, .vTextField, .vIntegerField, .vURLField {
+    background: #0f0f1a !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255,255,255,0.13) !important;
+    border-radius: 7px !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+}
+input:focus, textarea:focus, select:focus {
+    border-color: rgba(124,185,232,0.5) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(124,185,232,0.08) !important;
+}
+select option { background: #1a1a2e !important; color: #e0e0e0 !important; }
+.form-row { border-bottom: 1px solid rgba(255,255,255,0.05) !important; }
+label { color: rgba(255,255,255,0.7) !important; font-size: 0.88rem !important; }
+.help { color: rgba(255,255,255,0.4) !important; font-size: 0.8rem !important; }
+.aligned label { min-width: 160px !important; }
+
+/* ── INLINES ── */
+.inline-group {
+    background: #1a1a2e !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    margin-top: 16px !important;
+}
+.inline-related { border-top: 1px solid rgba(255,255,255,0.05) !important; }
+.inline-related h3 {
+    background: #16213e !important;
+    color: rgba(255,255,255,0.6) !important;
+    font-size: 0.78rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 10px 16px !important;
+}
+.add-row td { background: transparent !important; border-top: 1px solid rgba(255,255,255,0.05) !important; }
+.add-row a { color: #7cb9e8 !important; }
+
+/* ── LINKS ── */
+a, a:visited { color: #7cb9e8 !important; }
+a:hover { color: #fff !important; }
+.changelink, .addlink, .viewlink { color: #7cb9e8 !important; }
+th a { color: rgba(255,255,255,0.7) !important; }
+
+/* ── PAGINATOR ── */
+.paginator {
+    background: #16213e !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+    color: rgba(255,255,255,0.5) !important;
+    padding: 10px 16px !important;
+}
+.paginator a, .paginator .this-page { color: #7cb9e8 !important; }
+.paginator .this-page { color: #fff !important; font-weight: bold !important; }
+
+/* ── MESSAGES ── */
+.messagelist li {
+    border-radius: 8px !important;
+    margin: 6px 0 !important;
+    padding: 10px 16px !important;
+    font-size: 0.9rem !important;
+    border: none !important;
+}
+.messagelist li.success {
+    background: rgba(76,175,80,0.15) !important;
+    border-left: 3px solid #4caf50 !important;
+    color: #81c784 !important;
+}
+.messagelist li.error {
+    background: rgba(233,69,96,0.15) !important;
+    border-left: 3px solid #e94560 !important;
+    color: #ef9a9a !important;
+}
+.messagelist li.warning {
+    background: rgba(255,193,7,0.15) !important;
+    border-left: 3px solid #ffc107 !important;
+    color: #ffd54f !important;
+}
+
+/* ── CHECKBOX ── */
+input[type="checkbox"] { accent-color: #e94560 !important; }
+#action-toggle { accent-color: #e94560 !important; }
+
+/* ── CALENDAR / DATE ── */
+.calendarbox, .timelist, .calendar { background: #1a1a2e !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+.calendar caption { background: #16213e !important; color: #fff !important; }
+.calendar td a { color: #7cb9e8 !important; }
+.calendarnav-previous a, .calendarnav-next a { color: rgba(255,255,255,0.6) !important; }
+
+/* ── DJANGO ADMIN INDEX BOXES ── */
+.app-ads .section, .app-auth .section {
+    background: #1a1a2e !important;
+    border-radius: 10px !important;
+}
+#content-related .module { background: #1a1a2e !important; }
+
+/* ── RECENT ACTIONS ── */
+#recent-actions-list li a { color: #7cb9e8 !important; }
+#recent-actions-list { padding: 0 !important; list-style: none !important; }
+#recent-actions-list li {
+    padding: 8px 16px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    font-size: 0.85rem !important;
+}
+#recent-actions-list .mini.quiet, .mini { color: rgba(255,255,255,0.4) !important; font-size: 0.78rem !important; }
+
+/* ── OBJECT HISTORY ── */
+#change-history tbody tr { background: transparent !important; border-bottom: 1px solid rgba(255,255,255,0.04) !important; }
+#change-history tbody td { color: #e0e0e0 !important; padding: 10px 12px !important; }
+
+/* ── ERROR LIST ── */
+.errorlist li {
+    background: rgba(233,69,96,0.12) !important;
+    border: 1px solid rgba(233,69,96,0.25) !important;
+    border-radius: 6px !important;
+    color: #ef9a9a !important;
+    padding: 6px 12px !important;
+}
+
+/* ── POPUP OVERLAY ── */
+.related-widget-wrapper-link { color: #7cb9e8 !important; }
+
+/* ── HIDE BROKEN THEME BUTTONS (Django 4.2 auto/light/dark toggle) ── */
+#theme-toggle { display: none !important; }
+
+/* ── MISC ── */
+.quiet { color: rgba(255,255,255,0.4) !important; }
+.nowrap { white-space: nowrap !important; }
+tr.alt { background: rgba(255,255,255,0.015) !important; }
+.errornote {
+    background: rgba(233,69,96,0.12) !important;
+    border: 1px solid rgba(233,69,96,0.25) !important;
+    color: #ef9a9a !important;
+    border-radius: 8px !important;
+}
+</style>
+{% endblock %}

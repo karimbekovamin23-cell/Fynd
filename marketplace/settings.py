@@ -215,5 +215,12 @@ TINKOFF_SECRET_KEY = os.getenv("TINKOFF_SECRET_KEY")
 
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
 if CLOUDINARY_URL:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 

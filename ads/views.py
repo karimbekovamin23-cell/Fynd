@@ -133,9 +133,14 @@ def ad_list(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    params = request.GET.copy()
+    params.pop("page", None)
+    query_string = params.urlencode()
+
     return render(request, "ads/ad_list.html", {
         "ads": page_obj,
         "page_obj": page_obj,
+        "query_string": query_string,
         "query": query,
         "city": city,
         "price_min": price_min,
@@ -187,6 +192,7 @@ def ad_detail(request, pk):
     price_max = ad.price * 1.3
 
     similar_ads = Ad.objects.filter(
+        is_published=True,
         category=ad.category,
         price__gte=price_min,
         price__lte=price_max
@@ -197,9 +203,9 @@ def ad_detail(request, pk):
     if ad.city:
         similar_ads = similar_ads.filter(city__icontains=ad.city)
     if similar_ads.count() < 4:
-        similar_ads = Ad.objects.filter(category=ad.category).exclude(pk=ad.pk)
+        similar_ads = Ad.objects.filter(is_published=True, category=ad.category).exclude(pk=ad.pk)
     if similar_ads.count() < 4:
-        similar_ads = Ad.objects.exclude(pk=ad.pk)
+        similar_ads = Ad.objects.filter(is_published=True).exclude(pk=ad.pk)
 
     similar_ads = similar_ads.order_by("-created_at")[:8]
 

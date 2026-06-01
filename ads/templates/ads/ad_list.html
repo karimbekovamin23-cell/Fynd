@@ -470,7 +470,7 @@ onclick="toggleFilter()">
 
 
 <p style="opacity:0.6; margin-bottom:15px;">
-Найдено объявлений: {{ ads|length }}
+Найдено объявлений: {{ page_obj.paginator.count }}
 </p>
 
 <!-- ADS -->
@@ -546,7 +546,23 @@ onclick="window.location.href='{% url 'ad_detail' ad.id %}'">
 
 </div>
 
-
+{% if page_obj.has_other_pages %}
+<div style="display:flex; justify-content:center; align-items:center; gap:12px; margin:24px 0;">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+       style="padding:10px 20px; background:#1a1a2e; color:#fff; border-radius:10px; text-decoration:none;">
+      ← Назад
+    </a>
+  {% endif %}
+  <span style="opacity:0.6;">Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+       style="padding:10px 20px; background:#1a1a2e; color:#fff; border-radius:10px; text-decoration:none;">
+      Вперёд →
+    </a>
+  {% endif %}
+</div>
+{% endif %}
 
 
 

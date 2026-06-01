@@ -1,0 +1,61 @@
+{% extends "admin/base_site.html" %}
+{% load i18n log admin_extras %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+  <h2 style="color:rgba(255,255,255,0.4);font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;margin:0 0 14px;">
+    Статистика
+  </h2>
+  {% admin_stats %}
+
+  <h2 style="color:rgba(255,255,255,0.4);font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;margin:24px 0 14px;">
+    Разделы
+  </h2>
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+
+  {% if not app_list %}
+    <p>{% trans "You don't have permission to view or edit anything." %}</p>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+  <div class="module" id="recent-actions-module">
+    <h2>{% trans "Recent actions" %}</h2>
+    <h3>{% trans "My actions" %}</h3>
+    {% get_admin_log 15 as admin_log for_user user %}
+    {% if not admin_log %}
+      <p style="padding:10px 16px;opacity:0.5;font-size:0.85rem;">{% trans "None available" %}</p>
+    {% else %}
+      <ul class="actionlist" id="recent-actions-list">
+        {% for entry in admin_log %}
+          <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+            {% if entry.is_deletion or not entry.get_admin_url %}
+              {{ entry.object_repr }}
+            {% else %}
+              <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+            {% endif %}
+            <br>
+            <span class="mini quiet">
+              {% if entry.is_addition %}{% trans "Added" %}
+              {% elif entry.is_change %}{% trans "Changed" %}
+              {% elif entry.is_deletion %}{% trans "Deleted" %}
+              {% endif %}
+              &nbsp;{% if entry.content_type %}{% filter capfirst %}{% trans entry.content_type.name %}{% endfilter %}{% else %}{% trans "Unknown content" %}{% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

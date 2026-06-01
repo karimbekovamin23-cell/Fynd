@@ -1,0 +1,44 @@
+{% load admin_extras %}
+<div class="fynd-dash">
+
+  <a href="/admin/ads/ad/" class="fynd-card">
+    <div class="fynd-card__num" style="color:#7cb9e8;">{{ ads_total }}</div>
+    <div class="fynd-card__lbl">Объявлений</div>
+  </a>
+
+  <a href="/admin/ads/ad/?is_published__exact=1" class="fynd-card">
+    <div class="fynd-card__num" style="color:#81c784;">{{ ads_published }}</div>
+    <div class="fynd-card__lbl">Опубликовано</div>
+  </a>
+
+  <a href="/admin/ads/ad/?is_published__exact=0" class="fynd-card">
+    <div class="fynd-card__num" style="color:#ffd54f;">{{ ads_moderation }}</div>
+    <div class="fynd-card__lbl">На модерации</div>
+  </a>
+
+  <a href="/admin/auth/user/" class="fynd-card">
+    <div class="fynd-card__num" style="color:#ce93d8;">{{ users_total }}</div>
+    <div class="fynd-card__lbl">Пользователей</div>
+  </a>
+
+  <a href="/admin/ads/payment/?status__exact=paid" class="fynd-card">
+    <div class="fynd-card__num" style="color:#e94560;">{{ revenue|space_fmt }} ₸</div>
+    <div class="fynd-card__lbl">Выручка (оплачено)</div>
+  </a>
+
+  <a href="/admin/ads/payment/" class="fynd-card">
+    <div class="fynd-card__num" style="color:#ffb74d;">{{ payments_paid }}</div>
+    <div class="fynd-card__lbl">Платежей</div>
+  </a>
+
+  <a href="/admin/ads/chat/" class="fynd-card">
+    <div class="fynd-card__num" style="color:#80cbc4;">{{ chats_total }}</div>
+    <div class="fynd-card__lbl">Чатов</div>
+  </a>
+
+  <a href="/admin/ads/message/" class="fynd-card">
+    <div class="fynd-card__num" style="color:#e94560;">{{ messages_today }}</div>
+    <div class="fynd-card__lbl">Сообщений сегодня</div>
+  </a>
+
+</div>

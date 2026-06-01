@@ -65,7 +65,7 @@ def ad_list(request):
     memory = request.GET.get('memory')
     color_phone = request.GET.get('color_phone')
 
-    ads = Ad.objects.filter(is_published=True).annotate(
+    ads = Ad.objects.filter(is_published=True).prefetch_related('images').annotate(
         is_active_promo=Case(
             When(promoted_until__gt=timezone.now(), then=True),
             default=False,
@@ -238,7 +238,7 @@ def toggle_favorite(request, pk):
 def profile_view(request, username):
     user = get_object_or_404(User, username=username)
     profile = user.profile
-    ads = Ad.objects.filter(author=user).order_by("-created_at")
+    ads = Ad.objects.filter(author=user).prefetch_related('images').order_by("-created_at")
     reviews = Review.objects.filter(target=user)
     total_views = ads.aggregate(total=Sum('views'))['total'] or 0
     total_favorites = ads.aggregate(total=Sum('favorites_count'))['total'] or 0

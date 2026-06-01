@@ -38,7 +38,7 @@
 
 .chat-item {
     display: block;
-    padding: 12px 14px;
+    padding: 14px 16px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
     cursor: pointer;
     text-decoration: none !important;
@@ -87,7 +87,26 @@
 
 /* ── MAIN ── */
 .chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.chat-header { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+.chat-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.chat-back-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 2px 6px 2px 0;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.chat-header-info { min-width: 0; }
 .chat-header-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
 .chat-header-sub { font-size: 0.77rem; color: rgba(255,255,255,0.38); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -153,21 +172,49 @@
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.15s;
+    flex-shrink: 0;
 }
 #msg-send:hover { background: #1d4ed8; }
 
 /* ── MOBILE ── */
 @media (max-width: 768px) {
-    .chat-wrap { flex-direction: column; height: calc(100vh - 80px); border-radius: 0; }
-    .chat-sidebar { width: 100%; height: 160px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
-    .chat-sidebar-list { display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
-    .chat-item { min-width: 150px; border-bottom: none; border-right: 1px solid rgba(255,255,255,0.05); }
-    .msg { max-width: 85%; font-size: 0.85rem; }
-    .chat-input-row { padding: 8px 10px; }
+    .chat-wrap {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: auto;
+        border-radius: 0;
+        border: none;
+        flex-direction: column;
+    }
+
+    /* По умолчанию: показываем сайдбар, прячем чат */
+    .chat-sidebar {
+        width: 100%;
+        flex: 1;
+        border-right: none;
+        border-bottom: none;
+    }
+    .chat-main { display: none; }
+
+    /* Когда чат выбран: прячем сайдбар, показываем чат */
+    .chat-wrap.chat-open .chat-sidebar { display: none; }
+    .chat-wrap.chat-open .chat-main { display: flex; flex: 1; }
+
+    /* Кнопка «назад» видна только на мобиле */
+    .chat-back-btn { display: block; }
+
+    .chat-sidebar-list { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+    .chat-item { min-width: unset; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .msg { max-width: 82%; font-size: 0.88rem; }
+    .chat-input-row { padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+    #msg-input { font-size: 16px; } /* предотвращает zoom на iOS */
 }
 </style>
 
-<div class="chat-wrap">
+<div class="chat-wrap{% if chat %} chat-open{% endif %}" id="chat-wrap">
 
     <!-- SIDEBAR -->
     <div class="chat-sidebar">
@@ -197,14 +244,17 @@
     <div class="chat-main">
 
         <div class="chat-header" id="chat-header">
-            {% if chat %}
-            <div class="chat-header-name">
-                {% if request.user == chat.seller %}{{ chat.buyer.username }}{% else %}{{ chat.seller.username }}{% endif %}
+            <button class="chat-back-btn" id="chat-back-btn" onclick="goBack()">&#8592;</button>
+            <div class="chat-header-info">
+                {% if chat %}
+                <div class="chat-header-name">
+                    {% if request.user == chat.seller %}{{ chat.buyer.username }}{% else %}{{ chat.seller.username }}{% endif %}
+                </div>
+                <div class="chat-header-sub">{{ chat.ad.title }}</div>
+                {% else %}
+                <div class="chat-header-name" style="opacity:0.35;">Выберите чат</div>
+                {% endif %}
             </div>
-            <div class="chat-header-sub">{{ chat.ad.title }}</div>
-            {% else %}
-            <div class="chat-header-name" style="opacity:0.35;">Выберите чат</div>
-            {% endif %}
         </div>
 
         <div class="chat-log" id="chat-log">
@@ -229,7 +279,8 @@
 const ME = "{{ request.user.username|escapejs }}";
 let activeChatId = {% if chat %}{{ chat.id }}{% else %}null{% endif %};
 
-const chatLog = document.getElementById('chat-log');
+const chatWrap = document.getElementById('chat-wrap');
+const chatLog  = document.getElementById('chat-log');
 chatLog.scrollTop = chatLog.scrollHeight;
 
 // ── WebSocket ──────────────────────────────────────────────────────────
@@ -253,7 +304,7 @@ function connectWS(chatId) {
 function appendMsg(text, isMe, time) {
     const wrap = document.createElement('div');
     wrap.className = 'msg ' + (isMe ? 'me' : 'other');
-    wrap.textContent = text;  // textContent — защита от XSS
+    wrap.textContent = text;
     if (time) {
         const t = document.createElement('div');
         t.className = 'msg-time';
@@ -267,7 +318,11 @@ function appendMsg(text, isMe, time) {
 // ── Переключение чата ──────────────────────────────────────────────────
 function switchChat(e, chatId, el) {
     e.preventDefault();
-    if (activeChatId === chatId) return;
+    if (activeChatId === chatId) {
+        // На мобиле — просто открываем чат если он уже активен
+        chatWrap.classList.add('chat-open');
+        return;
+    }
     activeChatId = chatId;
 
     document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
@@ -283,15 +338,26 @@ function switchChat(e, chatId, el) {
         .then(data => {
             const hdr = document.getElementById('chat-header');
             hdr.innerHTML =
+                '<button class="chat-back-btn" onclick="goBack()">&#8592;</button>' +
+                '<div class="chat-header-info">' +
                 '<div class="chat-header-name">' + esc(data.other_user) + '</div>' +
-                '<div class="chat-header-sub">' + esc(data.ad_title) + '</div>';
+                '<div class="chat-header-sub">' + esc(data.ad_title) + '</div>' +
+                '</div>';
 
             chatLog.innerHTML = '';
             data.messages.forEach(m => appendMsg(m.text, m.is_me, m.time));
 
             document.getElementById('chat-input-row').style.display = 'flex';
+            chatWrap.classList.add('chat-open');
             connectWS(chatId);
+
+            // Фокус на ввод после небольшой задержки (мобиле)
+            setTimeout(() => document.getElementById('msg-input').focus(), 100);
         });
+}
+
+function goBack() {
+    chatWrap.classList.remove('chat-open');
 }
 
 function esc(s) {
@@ -301,8 +367,8 @@ function esc(s) {
 }
 
 // ── Отправка ───────────────────────────────────────────────────────────
-const msgInput  = document.getElementById('msg-input');
-const msgSend   = document.getElementById('msg-send');
+const msgInput = document.getElementById('msg-input');
+const msgSend  = document.getElementById('msg-send');
 
 msgSend.onclick = sendMsg;
 msgInput.addEventListener('keypress', e => {

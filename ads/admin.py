@@ -48,7 +48,6 @@ class AdAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_display_links = ("id", "title")
-    list_editable = ("is_published",)
     list_filter = ("is_published", "category", "brand", "city", "created_at")
     search_fields = ("title", "description", "author__username", "author__email", "city")
     ordering = ("-created_at",)

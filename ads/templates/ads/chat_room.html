@@ -1,208 +1,324 @@
 {% extends "base.html" %}
-
 {% block content %}
 
 <style>
-
-/* 🔥 КОНТЕЙНЕР */
-.chat-container{
-    max-width:900px;
-    margin:20px auto;
-    height:calc(100vh - 120px);
-
-    display:flex;
-    flex-direction:column;
+.chat-wrap {
+    display: flex;
+    height: calc(100vh - 110px);
+    min-height: 420px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #0e0e10;
+    border: 1px solid rgba(255,255,255,0.07);
 }
 
-/* 🔥 ЗАГОЛОВОК */
-.chat-title{
-    margin-bottom:15px;
+/* ── SIDEBAR ── */
+.chat-sidebar {
+    width: 300px;
+    flex-shrink: 0;
+    background: #111114;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.chat-sidebar-hdr {
+    padding: 14px 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.35);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+}
+.chat-sidebar-list { overflow-y: auto; flex: 1; }
+.chat-sidebar-list::-webkit-scrollbar { width: 4px; }
+.chat-sidebar-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.chat-item {
+    display: block;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: background 0.15s;
+    position: relative;
+}
+.chat-item:hover { background: rgba(255,255,255,0.04); }
+.chat-item.active { background: rgba(37,99,235,0.18); border-left: 3px solid #2563eb; }
+.chat-item-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+.chat-item-last {
+    font-size: 0.77rem;
+    color: rgba(255,255,255,0.38);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+.chat-item-badge {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e94560;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    min-width: 20px;
+    text-align: center;
+}
+.chat-empty-hint {
+    padding: 20px 16px;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.85rem;
 }
 
-/* 🔥 ОКНО ЧАТА */
-#chat-log{
-    flex:1;
-    overflow-y:auto;
-    background:#18181b;
-    border-radius:16px;
-    padding:20px;
+/* ── MAIN ── */
+.chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.chat-header { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+.chat-header-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
+.chat-header-sub { font-size: 0.77rem; color: rgba(255,255,255,0.38); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    display:flex;
-    flex-direction:column;
-    gap:10px;
+.chat-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.chat-log::-webkit-scrollbar { width: 4px; }
+.chat-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.chat-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: rgba(255,255,255,0.22);
+    font-size: 0.9rem;
 }
 
-/* 🔥 СООБЩЕНИЕ */
-.msg{
-    max-width:60%;
-    padding:10px 14px;
-    border-radius:12px;
-    font-size:14px;
+.msg {
+    max-width: 65%;
+    padding: 9px 13px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    word-break: break-word;
+    white-space: pre-wrap;
 }
+.msg.me   { align-self: flex-end;  background: #2563eb; color: #fff; border-bottom-right-radius: 3px; }
+.msg.other{ align-self: flex-start; background: #1e1e22; color: #e0e0e0; border-bottom-left-radius: 3px; }
+.msg-time { font-size: 0.68rem; opacity: 0.5; margin-top: 3px; text-align: right; }
 
-/* МОИ */
-.msg.me{
-    align-self:flex-end;
-    background:#2563eb;
-    color:white;
+/* ── INPUT ── */
+.chat-input-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
 }
-
-/* ЧУЖИЕ */
-.msg.other{
-    align-self:flex-start;
-    background:#27272a;
-    color:#e5e7eb;
+#msg-input {
+    flex: 1;
+    background: #1a1a1e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.15s;
 }
-
-/* ИМЯ */
-.msg-name{
-    font-size:11px;
-    opacity:0.6;
-    margin-bottom:3px;
+#msg-input:focus { border-color: rgba(37,99,235,0.5); }
+#msg-send {
+    background: #2563eb;
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    padding: 10px 18px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.15s;
 }
+#msg-send:hover { background: #1d4ed8; }
 
-/* 🔥 ВВОД */
-.chat-input{
-    display:flex;
-    gap:10px;
-    margin-top:10px;
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+    .chat-wrap { flex-direction: column; height: calc(100vh - 80px); border-radius: 0; }
+    .chat-sidebar { width: 100%; height: 160px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .chat-sidebar-list { display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+    .chat-item { min-width: 150px; border-bottom: none; border-right: 1px solid rgba(255,255,255,0.05); }
+    .msg { max-width: 85%; font-size: 0.85rem; }
+    .chat-input-row { padding: 8px 10px; }
 }
-
-#chat-message-input{
-    flex:1;
-    background:#18181b;
-    border:none;
-    color:white;
-    padding:12px;
-    border-radius:12px;
-}
-
-#chat-message-submit{
-    background:#2563eb;
-    border:none;
-    color:white;
-    padding:12px 20px;
-    border-radius:12px;
-    cursor:pointer;
-}
-
-#chat-message-submit:hover{
-    background:#1d4ed8;
-}
-
-/* 🔥 МОБИЛКА */
-@media (max-width:768px){
-
-    .chat-container{
-        height:calc(100vh - 80px);
-        margin:0;
-    }
-
-    .chat-title{
-        font-size:16px;
-        padding:10px;
-    }
-
-    #chat-log{
-        border-radius:0;
-        padding:12px;
-    }
-
-    .msg{
-        max-width:85%;
-        font-size:14px;
-        word-break:break-word;
-    }
-
-    .chat-input{
-        position:sticky;
-        bottom:0;
-        background:#0e0e10;
-        padding:10px;
-    }
-
-    #chat-message-input{
-        font-size:16px;
-    }
-
-}
-
 </style>
 
-<div class="chat-container">
+<div class="chat-wrap">
 
-<h4 class="chat-title">Чат по объявлению: {{ chat.ad.title }}</h4>
+    <!-- SIDEBAR -->
+    <div class="chat-sidebar">
+        <div class="chat-sidebar-hdr">Сообщения</div>
+        <div class="chat-sidebar-list">
+            {% for c in chats %}
+            <a href="{% url 'chat_view' c.id %}"
+               class="chat-item{% if chat and chat.id == c.id %} active{% endif %}"
+               onclick="switchChat(event, {{ c.id }}, this)">
+                <div class="chat-item-name">
+                    {% if request.user == c.seller %}{{ c.buyer.username }}{% else %}{{ c.ad.title|truncatechars:28 }}{% endif %}
+                </div>
+                {% if c.last_message %}
+                <div class="chat-item-last">
+                    {% if c.last_message.sender == request.user %}Вы: {% endif %}{{ c.last_message.text|truncatechars:30 }}
+                </div>
+                {% endif %}
+                {% if c.unread %}<span class="chat-item-badge" id="badge-{{ c.id }}">{{ c.unread }}</span>{% endif %}
+            </a>
+            {% empty %}
+            <div class="chat-empty-hint">Нет активных чатов</div>
+            {% endfor %}
+        </div>
+    </div>
 
-<div id="chat-log">
+    <!-- MAIN PANEL -->
+    <div class="chat-main">
 
-{% for message in messages %}
+        <div class="chat-header" id="chat-header">
+            {% if chat %}
+            <div class="chat-header-name">
+                {% if request.user == chat.seller %}{{ chat.buyer.username }}{% else %}{{ chat.seller.username }}{% endif %}
+            </div>
+            <div class="chat-header-sub">{{ chat.ad.title }}</div>
+            {% else %}
+            <div class="chat-header-name" style="opacity:0.35;">Выберите чат</div>
+            {% endif %}
+        </div>
 
-<div class="msg {% if message.sender == request.user %}me{% else %}other{% endif %}">
-    <div class="msg-name">{{ message.sender.username }}</div>
-    {{ message.text }}
-</div>
+        <div class="chat-log" id="chat-log">
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="msg {% if msg.sender == request.user %}me{% else %}other{% endif %}">{{ msg.text }}<div class="msg-time">{{ msg.created_at|time:"H:i" }}</div></div>
+                {% endfor %}
+            {% elif not chat %}
+            <div class="chat-placeholder">Выберите чат слева ←</div>
+            {% endif %}
+        </div>
 
-{% endfor %}
+        <div class="chat-input-row" id="chat-input-row"{% if not chat %} style="display:none"{% endif %}>
+            <input id="msg-input" placeholder="Сообщение..." autocomplete="off">
+            <button id="msg-send">➤</button>
+        </div>
 
-</div>
-
-<div class="chat-input">
-<input id="chat-message-input" type="text" placeholder="Написать сообщение...">
-<button id="chat-message-submit">➤</button>
-</div>
-
+    </div>
 </div>
 
 <script>
+const ME = "{{ request.user.username|escapejs }}";
+let activeChatId = {% if chat %}{{ chat.id }}{% else %}null{% endif %};
 
-let socket;
+const chatLog = document.getElementById('chat-log');
+chatLog.scrollTop = chatLog.scrollHeight;
 
-function connectChat(){
+// ── WebSocket ──────────────────────────────────────────────────────────
+let socket = null;
 
+function connectWS(chatId) {
+    if (socket) { socket.onclose = null; socket.close(); socket = null; }
     socket = new WebSocket(
-        (window.location.protocol === "https:" ? "wss://" : "ws://")
-        + window.location.host
-        + "/ws/chat/"
-        + chatId
-        + "/"
+        (location.protocol === 'https:' ? 'wss://' : 'ws://')
+        + location.host + '/ws/chat/' + chatId + '/'
     );
-
-    socket.onopen = function(){
-        console.log("✅ CHAT CONNECTED");
+    socket.onmessage = function(e) {
+        const d = JSON.parse(e.data);
+        appendMsg(d.message, d.username === ME, d.time || '');
     };
-
-    socket.onerror = function(e){
-        console.log("❌ SOCKET ERROR", e);
-    };
-
-    socket.onclose = function(e){
-        console.log("❌ SOCKET CLOSED");
-
-        setTimeout(() => {
-            connectChat();
-        }, 2000);
-    };
-
-    socket.onmessage = function(e){
-
-        const data = JSON.parse(e.data);
-
-        const chat = document.getElementById("chat-log");
-
-        const isMe = data.username === "{{ request.user.username }}";
-
-        chat.innerHTML += `
-        <div class="msg ${isMe ? "me" : "other"}">
-            <div class="msg-name">${data.username}</div>
-            ${data.message}
-        </div>
-        `;
-
-        chat.scrollTop = chat.scrollHeight;
+    socket.onclose = function() {
+        if (activeChatId === chatId) setTimeout(() => connectWS(chatId), 2000);
     };
 }
 
-connectChat(); 
+function appendMsg(text, isMe, time) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ' + (isMe ? 'me' : 'other');
+    wrap.textContent = text;  // textContent — защита от XSS
+    if (time) {
+        const t = document.createElement('div');
+        t.className = 'msg-time';
+        t.textContent = time;
+        wrap.appendChild(t);
+    }
+    chatLog.appendChild(wrap);
+    chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+// ── Переключение чата ──────────────────────────────────────────────────
+function switchChat(e, chatId, el) {
+    e.preventDefault();
+    if (activeChatId === chatId) return;
+    activeChatId = chatId;
+
+    document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+
+    const badge = document.getElementById('badge-' + chatId);
+    if (badge) badge.remove();
+
+    history.pushState(null, '', '/chat/' + chatId + '/');
+
+    fetch('/api/chat/' + chatId + '/messages/')
+        .then(r => r.json())
+        .then(data => {
+            const hdr = document.getElementById('chat-header');
+            hdr.innerHTML =
+                '<div class="chat-header-name">' + esc(data.other_user) + '</div>' +
+                '<div class="chat-header-sub">' + esc(data.ad_title) + '</div>';
+
+            chatLog.innerHTML = '';
+            data.messages.forEach(m => appendMsg(m.text, m.is_me, m.time));
+
+            document.getElementById('chat-input-row').style.display = 'flex';
+            connectWS(chatId);
+        });
+}
+
+function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+// ── Отправка ───────────────────────────────────────────────────────────
+const msgInput  = document.getElementById('msg-input');
+const msgSend   = document.getElementById('msg-send');
+
+msgSend.onclick = sendMsg;
+msgInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') { e.preventDefault(); sendMsg(); }
+});
+
+function sendMsg() {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    const text = msgInput.value.trim();
+    if (!text) return;
+    socket.send(JSON.stringify({ message: text }));
+    msgInput.value = '';
+}
+
+// ── Стартовое подключение ──────────────────────────────────────────────
+if (activeChatId) connectWS(activeChatId);
 </script>
 
 {% endblock %}

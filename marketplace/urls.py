@@ -43,6 +43,7 @@ urlpatterns = [
     path("chat/ad/<int:ad_id>/", views.open_chat, name="open_chat"),
 
     path("api/unread-count/", views.unread_count),
+    path("api/chat/<int:chat_id>/messages/", views.api_chat_messages),
     
     path("api/brands/", views.get_brands),
     path("api/models/", views.get_models),

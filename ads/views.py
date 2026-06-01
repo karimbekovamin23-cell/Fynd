@@ -321,44 +321,59 @@ def add_review(request, username):
     return redirect("profile", username=username)
 
 
-def chat(request):
-    return render(request, "ads/chat.html")
+def _user_chats(user):
+    """All chats for user with last_message and unread count attached."""
+    chats = (
+        Chat.objects.filter(Q(buyer=user) | Q(seller=user))
+        .select_related("ad", "buyer", "seller")
+        .distinct()
+        .order_by("-id")
+    )
+    for c in chats:
+        c.last_message = (
+            Message.objects.filter(chat=c).order_by("-created_at").first()
+        )
+        c.unread = Message.objects.filter(
+            chat=c, is_read=False
+        ).exclude(sender=user).count()
+    return chats
 
 
 @login_required
 def chat_view(request, chat_id):
     chat_obj = get_object_or_404(Chat, id=chat_id)
 
-    chat_messages = Message.objects.filter(chat=chat_obj).order_by("created_at")
+    if request.user not in (chat_obj.buyer, chat_obj.seller):
+        return redirect("chat_list")
 
     Message.objects.filter(
-        chat=chat_obj,
-        is_read=False
+        chat=chat_obj, is_read=False
     ).exclude(sender=request.user).update(is_read=True)
+
+    chat_messages = (
+        Message.objects.filter(chat=chat_obj)
+        .select_related("sender")
+        .order_by("created_at")
+    )
 
     return render(request, "ads/chat_room.html", {
         "chat": chat_obj,
         "messages": chat_messages,
+        "chats": _user_chats(request.user),
     })
 
 
 @login_required
 def chat_list(request):
-    chats = (
-        Chat.objects.filter(buyer=request.user) |
-        Chat.objects.filter(seller=request.user)
-    ).distinct()
-
-    for chat_obj in chats:
-        chat_obj.last_message = Message.objects.filter(
-            chat=chat_obj
-        ).order_by("-created_at").first()
-        chat_obj.unread = Message.objects.filter(
-            chat=chat_obj,
-            is_read=False
-        ).exclude(sender=request.user).count()
-
-    return render(request, "ads/chat_list.html", {"chats": chats})
+    chats = _user_chats(request.user)
+    first = chats.first()
+    if first:
+        return redirect("chat_view", first.id)
+    return render(request, "ads/chat_room.html", {
+        "chat": None,
+        "messages": [],
+        "chats": chats,
+    })
 
 
 @login_required
@@ -371,10 +386,45 @@ def open_chat(request, ad_id):
     chat_obj, _ = Chat.objects.get_or_create(
         ad=ad,
         buyer=request.user,
-        seller=ad.author
+        seller=ad.author,
     )
 
     return redirect("chat_view", chat_obj.id)
+
+
+@login_required
+def api_chat_messages(request, chat_id):
+    chat_obj = get_object_or_404(Chat, id=chat_id)
+
+    if request.user not in (chat_obj.buyer, chat_obj.seller):
+        return JsonResponse({"error": "forbidden"}, status=403)
+
+    Message.objects.filter(
+        chat=chat_obj, is_read=False
+    ).exclude(sender=request.user).update(is_read=True)
+
+    msgs = (
+        Message.objects.filter(chat=chat_obj)
+        .select_related("sender")
+        .order_by("created_at")
+    )
+    other = chat_obj.buyer if request.user == chat_obj.seller else chat_obj.seller
+
+    return JsonResponse({
+        "messages": [
+            {
+                "id": m.id,
+                "text": m.text,
+                "sender": m.sender.username,
+                "is_me": m.sender_id == request.user.id,
+                "time": m.created_at.strftime("%H:%M"),
+            }
+            for m in msgs
+        ],
+        "other_user": other.username,
+        "ad_title": chat_obj.ad.title,
+        "chat_id": chat_id,
+    })
 
 
 def unread_count(request):
@@ -382,9 +432,8 @@ def unread_count(request):
         return JsonResponse({"count": 0})
 
     count = Message.objects.filter(
-        chat__buyer=request.user
-    ).exclude(sender=request.user).count() + Message.objects.filter(
-        chat__seller=request.user
+        Q(chat__buyer=request.user) | Q(chat__seller=request.user),
+        is_read=False,
     ).exclude(sender=request.user).count()
 
     return JsonResponse({"count": count})

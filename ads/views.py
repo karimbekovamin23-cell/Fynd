@@ -122,8 +122,10 @@ def ad_list(request):
         ads = ads.order_by("-promotion_level", "-promoted_at", "-created_at")
 
     unread = 0
+    favorited_ids = set()
     if request.user.is_authenticated:
         unread = unread_messages(request.user)
+        favorited_ids = set(Favorite.objects.filter(user=request.user).values_list('ad_id', flat=True))
 
     categories = Category.objects.all()
     brands = Brand.objects.filter(category_id=category_id) if category_id else Brand.objects.none()
@@ -140,6 +142,7 @@ def ad_list(request):
     return render(request, "ads/ad_list.html", {
         "ads": page_obj,
         "page_obj": page_obj,
+        "favorited_ids": favorited_ids,
         "query_string": query_string,
         "query": query,
         "city": city,
@@ -227,10 +230,15 @@ def toggle_favorite(request, pk):
     if not created:
         favorite.delete()
         ad.favorites_count = max(0, ad.favorites_count - 1)
+        is_favorited = False
     else:
         ad.favorites_count += 1
+        is_favorited = True
 
     ad.save()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'favorited': is_favorited})
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
 

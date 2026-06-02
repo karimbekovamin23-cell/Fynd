@@ -488,14 +488,11 @@ onclick="window.location.href='{% url 'ad_detail' ad.id %}'">
     {% endif %}
 
     <div class="favorite-icon">
-        <form action="{% url 'toggle_favorite' ad.id %}" method="post"
-        onclick="event.stopPropagation();">
-        {% csrf_token %}
-        <button type="submit"
-        style="background:none;border:none;font-size:20px;color:white;">
-        ❤️
+        <button type="button"
+            onclick="event.stopPropagation(); toggleFav(this, {{ ad.id }})"
+            style="background:none;border:none;font-size:20px;cursor:pointer;padding:0;opacity:{% if ad.id in favorited_ids %}1{% else %}0.45{% endif %}">
+            ❤️
         </button>
-        </form>
     </div>
 
     <div class="new-badge">NEW</div>
@@ -796,6 +793,25 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleFields();
 
 });
+
+function getCsrf() {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+}
+
+function toggleFav(btn, adId) {
+    fetch(`/favorite/${adId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrf(),
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.style.opacity = data.favorited ? '1' : '0.45';
+    });
+}
 
 </script>
 

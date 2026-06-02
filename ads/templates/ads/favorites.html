@@ -91,14 +91,8 @@
 <div class="ad-card">
 
 <!-- 🔥 КНОПКА УБРАТЬ -->
-<form method="post"
-      action="{% url 'toggle_favorite' ad.id %}"
-      onclick="event.stopPropagation();">
-
-    {% csrf_token %}
-    <button class="fav-btn">❤️</button>
-
-</form>
+<button class="fav-btn"
+    onclick="event.stopPropagation(); removeFav(this, {{ ad.id }})">❤️</button>
 
 <!-- 🔥 КЛИК ПО КАРТОЧКЕ -->
 <div onclick="window.location.href='{% url 'ad_detail' ad.id %}'">
@@ -138,5 +132,26 @@
 </div>
 
 </div>
+
+<script>
+function getCsrf() {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+}
+
+function removeFav(btn, adId) {
+    fetch(`/favorite/${adId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrf(),
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(r => r.json())
+    .then(() => {
+        btn.closest('.col-md-4').remove();
+    });
+}
+</script>
 
 {% endblock %}

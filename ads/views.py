@@ -32,17 +32,15 @@ def unread_messages(user):
     ).count()
 
 
-def ad_list(request):
-    Ad.objects.filter(
-        promoted_until__lt=timezone.now()
-    ).update(
-        promotion_level=0,
-        is_promoted=False
+def _expire_promotions():
+    Ad.objects.filter(promoted_until__lt=timezone.now(), is_promoted=True).update(
+        promotion_level=0, is_promoted=False
     )
-    Ad.objects.filter(
-        expires_at__lt=timezone.now(),
-        is_published=True
-    ).update(is_published=False)
+    Ad.objects.filter(expires_at__lt=timezone.now(), is_published=True).update(is_published=False)
+
+
+def ad_list(request):
+    _expire_promotions()
 
     query = request.GET.get('q') or ''
     city = request.GET.get('city')
@@ -113,13 +111,13 @@ def ad_list(request):
         ads = ads.filter(price__lte=price_max)
 
     if sort == "cheap":
-        ads = ads.order_by("-promotion_level", "-promoted_at", "price")
+        ads = ads.order_by("-is_pinned", "-promotion_level", "-promoted_at", "price")
     elif sort == "expensive":
-        ads = ads.order_by("-promotion_level", "-promoted_at", "-price")
+        ads = ads.order_by("-is_pinned", "-promotion_level", "-promoted_at", "-price")
     elif sort == "popular":
-        ads = ads.order_by("-promotion_level", "-promoted_at", "-views")
+        ads = ads.order_by("-is_pinned", "-promotion_level", "-promoted_at", "-views")
     else:
-        ads = ads.order_by("-promotion_level", "-promoted_at", "-created_at")
+        ads = ads.order_by("-is_pinned", "-promotion_level", "-promoted_at", "-created_at")
 
     unread = 0
     favorited_ids = set()
@@ -180,6 +178,7 @@ def add_ad(request):
 
 
 def ad_detail(request, pk):
+    _expire_promotions()
     ad = get_object_or_404(Ad, pk=pk)
 
     if request.user != ad.author:
@@ -523,8 +522,12 @@ def choose_promotion(request, pk):
 
 def buy_promotion(request, pk, days):
     ad = get_object_or_404(Ad, pk=pk, author=request.user)
+    days = int(days)
+    level = {1: 1, 3: 2, 7: 3}.get(days, 1)
     ad.is_promoted = True
-    ad.promoted_until = timezone.now() + timedelta(days=int(days))
+    ad.promotion_level = level
+    ad.promoted_at = timezone.now()
+    ad.promoted_until = timezone.now() + timedelta(days=days)
     ad.save()
     return redirect('profile', username=request.user.username)
 
@@ -607,6 +610,12 @@ def payment_webhook(request):
         data = json.loads(request.body)
     except Exception:
         return JsonResponse({"ok": False})
+
+    if settings.TINKOFF_SECRET_KEY:
+        received_token = data.pop("Token", None)
+        expected_token = _generate_token(data, settings.TINKOFF_SECRET_KEY)
+        if received_token != expected_token:
+            return JsonResponse({"ok": False}, status=403)
 
     external_id = data.get("OrderId")
     status = data.get("Status")

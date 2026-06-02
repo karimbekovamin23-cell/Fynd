@@ -51,6 +51,7 @@ class Ad(models.Model):
     city = models.CharField(max_length=100)
 
     # 🚀 ПРОДВИЖЕНИЕ
+    is_pinned = models.BooleanField(default=False, verbose_name="Закреплено")
     is_promoted = models.BooleanField(default=False)
     promotion_level = models.IntegerField(default=0)  # 0 = нет, 1/2/3 = уровни
     promoted_at = models.DateTimeField(null=True, blank=True)

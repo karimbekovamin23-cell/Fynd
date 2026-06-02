@@ -19,6 +19,14 @@ def unpublish_ads(modeladmin, request, queryset):
     queryset.update(is_published=False)
 unpublish_ads.short_description = "✖ Снять с публикации"
 
+def pin_ads(modeladmin, request, queryset):
+    queryset.update(is_pinned=True)
+pin_ads.short_description = "📌 Закрепить наверху"
+
+def unpin_ads(modeladmin, request, queryset):
+    queryset.update(is_pinned=False)
+unpin_ads.short_description = "❌ Открепить"
+
 
 # ─── INLINE ─────────────────────────────────────────────────────────────────
 
@@ -42,16 +50,16 @@ class AdImageInline(admin.TabularInline):
 class AdAdmin(admin.ModelAdmin):
 
     list_display = (
-        "id", "thumbnail", "title", "author_link",
+        "id", "pin_badge", "thumbnail", "title", "author_link",
         "category", "brand", "price_fmt",
         "city", "views", "fav", "status_badge",
         "created_at",
     )
     list_display_links = ("id", "title")
-    list_filter = ("is_published", "category", "brand", "city", "created_at")
+    list_filter = ("is_pinned", "is_published", "category", "brand", "city", "created_at")
     search_fields = ("title", "description", "author__username", "author__email", "city")
-    ordering = ("-created_at",)
-    actions = [publish_ads, unpublish_ads]
+    ordering = ("-is_pinned", "-created_at",)
+    actions = [pin_ads, unpin_ads, publish_ads, unpublish_ads]
     inlines = [AdImageInline]
     list_per_page = 30
     date_hierarchy = "created_at"
@@ -75,12 +83,19 @@ class AdAdmin(admin.ModelAdmin):
         }),
         ("Продвижение", {
             "classes": ("collapse",),
-            "fields": ("is_promoted", "promotion_level", "promoted_at", "promoted_until")
+            "fields": ("is_pinned", "is_promoted", "promotion_level", "promoted_at", "promoted_until")
         }),
         ("Статистика", {
             "fields": ("views", "favorites_count", "created_at", "expires_at")
         }),
     )
+
+    def pin_badge(self, obj):
+        if obj.is_pinned:
+            return format_html('<span title="Закреплено" style="font-size:16px;">📌</span>')
+        return ""
+    pin_badge.short_description = "📌"
+    pin_badge.admin_order_field = "is_pinned"
 
     def thumbnail(self, obj):
         img = obj.images.first()

@@ -12,10 +12,14 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "fynd-production.up.railway.app",
+    "fynd.moscow",
+    "www.fynd.moscow",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://fynd-production.up.railway.app",
+    "https://fynd.moscow",
+    "https://www.fynd.moscow",
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

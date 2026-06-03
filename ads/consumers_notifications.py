@@ -27,6 +27,14 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
 
+    async def receive(self, text_data):
+        try:
+            data = json.loads(text_data)
+            if data.get("type") == "ping":
+                await self.send(text_data=json.dumps({"type": "pong"}))
+        except Exception:
+            pass
+
     async def send_notification(self, event):
         await self.send(text_data=json.dumps({
             "count": event.get("count", 1),

@@ -185,6 +185,12 @@ function connectSocket() {
     // ✅ подключено
     notificationSocket.onopen = () => {
         console.log("✅ Notification connected");
+        if (window._notifPing) clearInterval(window._notifPing);
+        window._notifPing = setInterval(() => {
+            if (notificationSocket && notificationSocket.readyState === WebSocket.OPEN) {
+                notificationSocket.send(JSON.stringify({type: "ping"}));
+            }
+        }, 25000);
     };
 
     // 🔥 получили уведомление

@@ -290,31 +290,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ── фото ────────────────────────────────────────────────────
-    const grid      = document.getElementById("photo-grid");
-    const addBtn    = document.getElementById("add-photo-btn");
-    const picker    = document.getElementById("file-picker");
-    const MAX       = 10;
-    const dt        = new DataTransfer();
+    const grid   = document.getElementById("photo-grid");
+    const addBtn = document.getElementById("add-photo-btn");
+    const picker = document.getElementById("file-picker");
+    const form   = grid.closest("form");
+    const MAX    = 10;
+    const files  = []; // хранилище File объектов
 
     addBtn.addEventListener("click", () => picker.click());
 
     picker.addEventListener("change", () => {
         Array.from(picker.files).forEach(file => {
-            if (dt.files.length >= MAX) return;
-            // проверка дубликата по имени+размеру
-            const exists = Array.from(dt.files).some(f => f.name === file.name && f.size === file.size);
-            if (!exists) dt.items.add(file);
+            if (files.length >= MAX) return;
+            const dup = files.some(f => f.name === file.name && f.size === file.size);
+            if (!dup) files.push(file);
         });
         picker.value = "";
         renderPreviews();
-        syncHiddenInput();
     });
 
     function renderPreviews() {
-        // убираем старые превью, оставляем кнопку "+"
         grid.querySelectorAll(".photo-thumb").forEach(el => el.remove());
-
-        Array.from(dt.files).forEach((file, idx) => {
+        files.forEach((file, idx) => {
             const thumb = document.createElement("div");
             thumb.className = "photo-thumb";
 
@@ -327,35 +324,35 @@ document.addEventListener("DOMContentLoaded", () => {
             rm.className = "remove-btn";
             rm.textContent = "×";
             rm.addEventListener("click", () => {
-                const newDt = new DataTransfer();
-                Array.from(dt.files).forEach((f, i) => { if (i !== idx) newDt.items.add(f); });
-                dt.items.clear();
-                Array.from(newDt.files).forEach(f => dt.items.add(f));
+                files.splice(idx, 1);
                 renderPreviews();
-                syncHiddenInput();
             });
             thumb.appendChild(rm);
-
             grid.insertBefore(thumb, addBtn);
         });
-
-        addBtn.style.display = dt.files.length >= MAX ? "none" : "flex";
+        addBtn.style.display = files.length >= MAX ? "none" : "flex";
     }
 
-    function syncHiddenInput() {
-        // создаём скрытый input с накопленными файлами
-        let hidden = document.getElementById("images-hidden");
-        if (!hidden) {
-            hidden = document.createElement("input");
-            hidden.type = "file";
-            hidden.name = "images";
-            hidden.id   = "images-hidden";
-            hidden.multiple = true;
-            hidden.style.display = "none";
-            grid.closest("form").appendChild(hidden);
+    // перехватываем submit — отправляем через fetch с FormData
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        fd.delete("images");
+        files.forEach(f => fd.append("images", f));
+
+        const btn = form.querySelector("button[type=submit], button:not([type])");
+        if (btn) { btn.disabled = true; btn.textContent = "Отправка..."; }
+
+        try {
+            const resp = await fetch(form.action || window.location.pathname, {
+                method: "POST",
+                body: fd,
+            });
+            window.location.href = resp.url || "/";
+        } catch {
+            if (btn) { btn.disabled = false; btn.textContent = "Опубликовать"; }
         }
-        hidden.files = dt.files;
-    }
+    });
 
 });
 </script>

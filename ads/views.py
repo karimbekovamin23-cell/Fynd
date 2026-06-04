@@ -17,7 +17,7 @@ import json
 import os
 import requests
 
-from .models import Ad, AdImage, Profile, Review, Favorite, Chat, Message, Payment, Category, Brand, Model
+from .models import Ad, AdImage, Profile, Review, Favorite, Chat, Message, Payment, Category, Brand, Model, PushSubscription
 from .forms import AdForm
 from . import telegram_bot
 
@@ -451,6 +451,26 @@ def api_chat_messages(request, chat_id):
         "ad_title": chat_obj.ad.title,
         "chat_id": chat_id,
     })
+
+
+@login_required
+def subscribe_push(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only"}, status=405)
+    data = json.loads(request.body)
+    endpoint = data.get("endpoint", "")
+    keys = data.get("keys") or {}
+    if not endpoint:
+        return JsonResponse({"error": "no endpoint"}, status=400)
+    PushSubscription.objects.update_or_create(
+        endpoint=endpoint,
+        defaults={
+            "user": request.user,
+            "p256dh": keys.get("p256dh", ""),
+            "auth": keys.get("auth", ""),
+        },
+    )
+    return JsonResponse({"status": "ok"})
 
 
 def unread_count(request):

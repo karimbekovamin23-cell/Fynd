@@ -6,6 +6,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.http import HttpResponse
+from django.views.generic import TemplateView
 from ads.sitemap import AdSitemap
 
 
@@ -51,6 +52,10 @@ urlpatterns = [
     path('pay/<int:ad_id>/<int:days>/', views.create_payment, name='create_payment'),
     path('payment/webhook/', views.payment_webhook),
     path('telegram/webhook/<str:secret>/', views.telegram_webhook),
+
+    path("api/push/subscribe/", views.subscribe_push),
+    path("sw.js", TemplateView.as_view(template_name="sw.js", content_type="application/javascript")),
+    path("manifest.json", TemplateView.as_view(template_name="manifest.json", content_type="application/json")),
 
     path('sitemap.xml', sitemap, {'sitemaps': {'ads': AdSitemap()}}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', lambda r: HttpResponse("User-agent: *\nDisallow: /admin/\nDisallow: /accounts/\nSitemap: https://fynd-production.up.railway.app/sitemap.xml", content_type="text/plain")),

@@ -58,6 +58,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 f"user_{receiver_id}",
                 {"type": "send_notification", "count": 1, "chat_id": self.chat_id},
             )
+            await self.dispatch_push(receiver_id, user.username, text)
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
@@ -72,6 +73,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "type": "typing",
                 "username": event["username"],
             }))
+
+    @database_sync_to_async
+    def dispatch_push(self, receiver_id, sender_username, text):
+        from django.contrib.auth.models import User
+        from . import push_notifications
+        try:
+            receiver = User.objects.get(pk=receiver_id)
+            push_notifications.send_push(
+                receiver,
+                f"FYND: {sender_username}",
+                text[:120],
+                f"/chat/{self.chat_id}/",
+            )
+        except Exception:
+            pass
 
     @database_sync_to_async
     def save_message(self, user_id, text):

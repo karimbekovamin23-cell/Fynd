@@ -683,52 +683,139 @@ def telegram_webhook(request, secret):
         return JsonResponse({"error": "forbidden"}, status=403)
 
     data = json.loads(request.body)
+    admin_chat = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "")
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    api = f"https://api.telegram.org/bot{bot_token}"
+
+    # ── Text commands (e.g. /list) ─────────────────────────────────────────────
+    tg_message = data.get("message")
+    if tg_message:
+        chat_id = str(tg_message.get("chat", {}).get("id", ""))
+        text = tg_message.get("text", "")
+        if text.strip().startswith("/list"):
+            telegram_bot.send_ad_list(chat_id)
+        return JsonResponse({"ok": True})
+
+    # ── Inline button callbacks ────────────────────────────────────────────────
     callback = data.get("callback_query")
     if not callback:
         return JsonResponse({"ok": True})
 
     callback_id = callback["id"]
-    action, _, ad_pk = callback["data"].partition("_")
+    cb_data = callback.get("data", "")
+    parts = cb_data.split("_")
+    action = parts[0]
+    ad_pk = parts[1] if len(parts) > 1 else None
 
+    msg = callback.get("message", {})
+    chat_id = str(msg.get("chat", {}).get("id", ""))
+    message_id = msg.get("message_id")
+
+    # Dismiss spinner for all callbacks
+    requests.post(f"{api}/answerCallbackQuery",
+                  json={"callback_query_id": callback_id}, timeout=5)
+
+    # ── Actions that don't need an ad ─────────────────────────────────────────
+    if action == "list":
+        telegram_bot.send_ad_list(chat_id, message_id)
+        return JsonResponse({"ok": True})
+
+    # ── Load ad ───────────────────────────────────────────────────────────────
+    if not ad_pk:
+        return JsonResponse({"ok": True})
     try:
         ad = Ad.objects.get(pk=ad_pk)
     except Ad.DoesNotExist:
         return JsonResponse({"ok": True})
 
-    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
-    api = f"https://api.telegram.org/bot{bot_token}"
-
+    # ── Moderation (approve / reject) ─────────────────────────────────────────
     if action == "approve":
         ad.is_published = True
         ad.save()
-        answer_text = f"✔ Одобрено: «{ad.title}»"
         new_text = f"✔ *Одобрено*\n\n{ad.title}"
-    else:
+        _tg_edit(api, msg, new_text)
+
+    elif action == "reject":
         ad.is_published = False
         ad.save()
-        answer_text = f"✖ Отклонено: «{ad.title}»"
         new_text = f"✖ *Отклонено*\n\n{ad.title}"
+        _tg_edit(api, msg, new_text)
 
-    requests.post(f"{api}/answerCallbackQuery", json={
-        "callback_query_id": callback_id,
-        "text": answer_text,
-    }, timeout=5)
+    # ── Detail view ───────────────────────────────────────────────────────────
+    elif action == "detail":
+        telegram_bot.send_ad_detail(chat_id, ad, message_id)
 
-    msg = callback.get("message", {})
-    if msg:
-        if msg.get("photo"):
-            requests.post(f"{api}/editMessageCaption", json={
-                "chat_id": msg["chat"]["id"],
-                "message_id": msg["message_id"],
-                "caption": new_text,
-                "parse_mode": "Markdown",
-            }, timeout=5)
+    # ── Pin / unpin ───────────────────────────────────────────────────────────
+    elif action == "pin":
+        ad.is_pinned = True
+        ad.save()
+        telegram_bot.send_ad_detail(chat_id, ad, message_id)
+
+    elif action == "unpin":
+        ad.is_pinned = False
+        ad.save()
+        telegram_bot.send_ad_detail(chat_id, ad, message_id)
+
+    # ── Promotion menu ────────────────────────────────────────────────────────
+    elif action == "promo":
+        telegram_bot.send_promo_keyboard(chat_id, ad, message_id)
+
+    elif action in ("p0", "p1", "p2", "p3"):
+        level = int(action[1])
+        if level == 0:
+            ad.is_promoted = False
+            ad.promotion_level = 0
+            ad.promoted_until = None
+            ad.promoted_at = None
         else:
-            requests.post(f"{api}/editMessageText", json={
-                "chat_id": msg["chat"]["id"],
-                "message_id": msg["message_id"],
-                "text": new_text,
-                "parse_mode": "Markdown",
-            }, timeout=5)
+            days = {1: 7, 2: 14, 3: 30}[level]
+            ad.is_promoted = True
+            ad.promotion_level = level
+            ad.promoted_at = timezone.now()
+            ad.promoted_until = timezone.now() + timedelta(days=days)
+        ad.save()
+        telegram_bot.send_ad_detail(chat_id, ad, message_id)
+
+    # ── Pause / resume ────────────────────────────────────────────────────────
+    elif action == "pause":
+        ad.is_published = False
+        ad.save()
+        telegram_bot.send_ad_detail(chat_id, ad, message_id)
+
+    elif action == "resume":
+        ad.is_published = True
+        ad.save()
+        telegram_bot.send_ad_detail(chat_id, ad, message_id)
+
+    # ── Delete ────────────────────────────────────────────────────────────────
+    elif action == "del":
+        title = ad.title
+        ad.delete()
+        requests.post(f"{api}/editMessageText", json={
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "text": f"🗑 *Удалено*: {title}",
+            "parse_mode": "Markdown",
+        }, timeout=5)
 
     return JsonResponse({"ok": True})
+
+
+def _tg_edit(api, msg, text):
+    """Edit an existing Telegram message (text or photo caption)."""
+    if not msg:
+        return
+    payload = {
+        "chat_id": msg["chat"]["id"],
+        "message_id": msg["message_id"],
+        "parse_mode": "Markdown",
+    }
+    try:
+        if msg.get("photo"):
+            requests.post(f"{api}/editMessageCaption",
+                          json={**payload, "caption": text}, timeout=5)
+        else:
+            requests.post(f"{api}/editMessageText",
+                          json={**payload, "text": text}, timeout=5)
+    except Exception:
+        pass

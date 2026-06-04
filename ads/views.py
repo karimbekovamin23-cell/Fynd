@@ -14,10 +14,12 @@ from datetime import timedelta
 import hashlib
 import uuid
 import json
+import os
 import requests
 
 from .models import Ad, AdImage, Profile, Review, Favorite, Chat, Message, Payment, Category, Brand, Model
 from .forms import AdForm
+from . import telegram_bot
 
 
 def unread_messages(user):
@@ -170,6 +172,7 @@ def add_ad(request):
             ad.save()
             for img in request.FILES.getlist('images'):
                 AdImage.objects.create(ad=ad, image=img)
+            telegram_bot.send_moderation_alert(ad)
             messages.success(request, 'Объявление отправлено на модерацию 🚀')
             return redirect('ad_list')
     else:
@@ -650,5 +653,62 @@ def payment_webhook(request):
     ad.promoted_at = timezone.now()
     ad.promoted_until = timezone.now() + timedelta(days=payment.days)
     ad.save()
+
+    return JsonResponse({"ok": True})
+
+
+@csrf_exempt
+def telegram_webhook(request, secret):
+    if secret != os.getenv("TELEGRAM_WEBHOOK_SECRET", ""):
+        return JsonResponse({"error": "forbidden"}, status=403)
+
+    data = json.loads(request.body)
+    callback = data.get("callback_query")
+    if not callback:
+        return JsonResponse({"ok": True})
+
+    callback_id = callback["id"]
+    action, _, ad_pk = callback["data"].partition("_")
+
+    try:
+        ad = Ad.objects.get(pk=ad_pk)
+    except Ad.DoesNotExist:
+        return JsonResponse({"ok": True})
+
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    api = f"https://api.telegram.org/bot{bot_token}"
+
+    if action == "approve":
+        ad.is_published = True
+        ad.save()
+        answer_text = f"✔ Одобрено: «{ad.title}»"
+        new_text = f"✔ *Одобрено*\n\n{ad.title}"
+    else:
+        ad.is_published = False
+        ad.save()
+        answer_text = f"✖ Отклонено: «{ad.title}»"
+        new_text = f"✖ *Отклонено*\n\n{ad.title}"
+
+    requests.post(f"{api}/answerCallbackQuery", json={
+        "callback_query_id": callback_id,
+        "text": answer_text,
+    }, timeout=5)
+
+    msg = callback.get("message", {})
+    if msg:
+        if msg.get("photo"):
+            requests.post(f"{api}/editMessageCaption", json={
+                "chat_id": msg["chat"]["id"],
+                "message_id": msg["message_id"],
+                "caption": new_text,
+                "parse_mode": "Markdown",
+            }, timeout=5)
+        else:
+            requests.post(f"{api}/editMessageText", json={
+                "chat_id": msg["chat"]["id"],
+                "message_id": msg["message_id"],
+                "text": new_text,
+                "parse_mode": "Markdown",
+            }, timeout=5)
 
     return JsonResponse({"ok": True})

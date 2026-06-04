@@ -50,6 +50,7 @@ urlpatterns = [
     
     path('pay/<int:ad_id>/<int:days>/', views.create_payment, name='create_payment'),
     path('payment/webhook/', views.payment_webhook),
+    path('telegram/webhook/<str:secret>/', views.telegram_webhook),
 
     path('sitemap.xml', sitemap, {'sitemaps': {'ads': AdSitemap()}}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', lambda r: HttpResponse("User-agent: *\nDisallow: /admin/\nDisallow: /accounts/\nSitemap: https://fynd-production.up.railway.app/sitemap.xml", content_type="text/plain")),
